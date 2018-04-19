@@ -1,0 +1,10 @@
+<library path="libtiffer_panel">
+  <class name="Tiffer"
+         type="tiffer_panel::TifferPanel"
+         base_class_type="rviz::Panel">
+    <description>
+      A simple panel to display info messages to the user.
+    </description>
+  </class>
+</library>
+
