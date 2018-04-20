@@ -35,18 +35,22 @@
 #include <ros/ros.h>
 #include <std_msgs/String.h>
 #include <rviz/panel.h>
+#include <stdio.h>
+#include <geometry_msgs/Twist.h>
 #endif
 
 #include <QPainter>
 #include <QLineEdit>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QPushButton>
+#include <QMessageBox>
 #include <QLabel>
 #include <QTimer>
 #include <QLine>
 
-class QLineEdit;
-class QLabel;
+#include <QDebug>
+
 
 namespace tiffer_panel {
 
@@ -60,14 +64,17 @@ public:
   virtual void save( rviz::Config config ) const;
 
   void message_cb(std_msgs::String msg);
-  void addLine(QVBoxLayout* layout);
+  
 
 public Q_SLOTS:
   void setMessage( const QString& message );
   void setTopic();
 
+  void localizeCallback();
+
+
 private:
-  
+  void addLine(QVBoxLayout* layout);
 
 protected:
 
@@ -85,6 +92,7 @@ protected:
 
   /// The ROS node handle.
   ros::NodeHandle nh;
+
 
 };
 

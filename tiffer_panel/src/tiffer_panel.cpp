@@ -1,38 +1,13 @@
 ///////////////////////////////////////////////////////////////////////////////
-//      Title     : Status logger panel
-//      Project   : ROSSTEP
-//      Created   : 7/15/2015
-//      Author    : Adam Allevato
-//      Platforms : Ubuntu 64-bit
-//      Copyright : Copyright© The University of Texas at Austin, 2014-2017. All rights reserved.
-//                 
-//          All files within this directory are subject to the following, unless an alternative
-//          license is explicitly included within the text of each file.
-//
-//          This software and documentation constitute an unpublished work
-//          and contain valuable trade secrets and proprietary information
-//          belonging to the University. None of the foregoing material may be
-//          copied or duplicated or disclosed without the express, written
-//          permission of the University. THE UNIVERSITY EXPRESSLY DISCLAIMS ANY
-//          AND ALL WARRANTIES CONCERNING THIS SOFTWARE AND DOCUMENTATION,
-//          INCLUDING ANY WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
-//          PARTICULAR PURPOSE, AND WARRANTIES OF PERFORMANCE, AND ANY WARRANTY
-//          THAT MIGHT OTHERWISE ARISE FROM COURSE OF DEALING OR USAGE OF TRADE.
-//          NO WARRANTY IS EITHER EXPRESS OR IMPLIED WITH RESPECT TO THE USE OF
-//          THE SOFTWARE OR DOCUMENTATION. Under no circumstances shall the
-//          University be liable for incidental, special, indirect, direct or
-//          consequential damages or loss of profits, interruption of business,
-//          or related expenses which may arise from use of software or documentation,
-//          including but not limited to those resulting from defects in software
-//          and/or documentation, or loss or inaccuracy of data of any kind.
+//      Title     : tiffer panel
+//      Project   : Tiffer
+//      Created   : 4/20/2018
+//      Author    : Tiffer Pelode
+//      Platforms : Ubuntu 64-bit           
 //
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "tiffer_panel/tiffer_panel.h"
-
-#include <stdio.h>
-
-#include <geometry_msgs/Twist.h>
 
 namespace tiffer_panel {
 
@@ -50,24 +25,24 @@ TifferPanel::TifferPanel( QWidget* parent ) :
   topic_layout->addWidget( input_topic_editor );
 
   //QHBoxLayout* message_layout = new QHBoxLayout;
-  message_display = new QLabel("tiffer pelode");
+  message_display = new QLabel(QObject::trUtf8("智澜科技"));
   message_display->setTextFormat(Qt::RichText);
-  message_display->setAlignment(Qt::AlignCenter);
+  message_display->setAlignment(Qt::AlignCenter); 
 
-  // Lay out the topic field next to the control widrivzget.
-  //QGridLayout* layout = new QGridLayout();
-  //layout->setColumnStretch(1,100);
-  //layout->addWidget( message_display, 0,0,1,4);
-  //layout->addLayout( topic_layout, 0,4,1,1 );
-  main_layout->addLayout(topic_layout);
-  main_layout->addWidget(message_display);
+  //Localize button
+  QPushButton* localize_button = new QPushButton(QObject::trUtf8("自动定位"));
+  main_layout->addWidget(localize_button);
+  
   addLine(main_layout);
+  main_layout->addWidget(message_display);
+
   setLayout( main_layout );
 
   input_topic_editor->resize(150, input_topic_editor->height());
 
   // Next we make signal/slot connections.
-  connect( input_topic_editor, SIGNAL( editingFinished() ), this, SLOT( setTopic() ));
+  //connect( input_topic_editor, SIGNAL( editingFinished() ), this, SLOT( setTopic() ));
+  connect(localize_button, SIGNAL(clicked()), this, SLOT(localizeCallback()));
 
   input_topic_editor->setText( input_topic );
   setTopic();
@@ -111,6 +86,27 @@ void TifferPanel::setMessage( const QString& msg) {
 void TifferPanel::message_cb(std_msgs::String msg)
 {
   setMessage(QString(msg.data.c_str()));
+}
+
+void TifferPanel::localizeCallback()
+{
+  QMessageBox confirmation(QMessageBox::Question, QObject::trUtf8("提示"), QObject::trUtf8("一方风景"));
+  QPushButton *yes = confirmation.addButton(trUtf8("确 认"), QMessageBox::YesRole);
+  QPushButton *no  = confirmation.addButton(trUtf8("取 消"), QMessageBox::NoRole);
+
+  confirmation.exec();
+
+  if(confirmation.clickedButton() == yes){
+    QMessageBox accept;
+    accept.setText(trUtf8("已确认desu"));
+    accept.exec();
+  }
+  else if(confirmation.clickedButton() == no){
+    QMessageBox reject;
+    reject.setText(trUtf8("已取消desu"));
+    reject.exec();
+  }
+
 }
 
 void TifferPanel::addLine(QVBoxLayout* layout)
