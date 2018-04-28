@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+
+<node pkg="rviz" type="rviz" name="rviz"
+    arg="-d $(find tiffer_panel)/launch/develop_version.rviz"/>
+
+</launch>
