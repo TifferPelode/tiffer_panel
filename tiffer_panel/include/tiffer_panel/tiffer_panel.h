@@ -57,6 +57,17 @@
 
 namespace tiffer_panel {
 
+    enum NavStatus
+    {
+        IDLE = 0,
+        SUCCESS = 10,
+        INPROGRESS = 20,
+        FAILED = 30,
+        SELF_LOCALIZATION = 40,
+        WAIT_APPLICATION = 50
+    };
+    
+
 class TifferPanel: public rviz::Panel
 {
     Q_OBJECT
@@ -83,6 +94,7 @@ class TifferPanel: public rviz::Panel
         void addLine(QVBoxLayout* layout);
         bool addLocation(const geometry_msgs::Pose &pose, const std::string &name);
         void getCurrentLocation(geometry_msgs::Pose &pose);
+        void setRobotStatus(const NavStatus &status);
 
         ros::NodeHandle nh_;
         ros::Publisher location_mark_pub_;
