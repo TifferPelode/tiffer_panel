@@ -13,7 +13,8 @@ namespace tiffer_panel {
 
     TifferPanel::TifferPanel( QWidget* parent ) :
     rviz::Panel( parent ),
-    input_topic("/status")
+    //input_topic("/status"),
+    move_base_client_("/move_base", true)
     {
 
         QVBoxLayout* main_layout = new QVBoxLayout;
@@ -60,6 +61,16 @@ namespace tiffer_panel {
         main_layout->addWidget(stop_button);
         addLine(main_layout);
 
+        QHBoxLayout* cruise_button_layout = new QHBoxLayout;
+        QLabel* cruise_label = new QLabel(QObject::trUtf8("巡航路径"));
+        cruise_button_layout->addWidget(cruise_label);
+        cruise_remove_button_ = new QPushButton(QObject::trUtf8("移除末端点"));
+        cruise_button_layout->addWidget(cruise_remove_button_);
+        QPushButton* cruise_cleaar_button = new QPushButton(QObject::trUtf8("清除路经"));
+        cruise_button_layout->addWidget(cruise_cleaar_button);
+        main_layout->addLayout(cruise_button_layout);
+        addLine(main_layout);
+
         QHBoxLayout* status_layout = new QHBoxLayout;
         QLabel* status_label = new QLabel(QObject::trUtf8("状态"));
         status_label->setStyleSheet("QLabel { font-size: 20px; }");
@@ -85,7 +96,7 @@ namespace tiffer_panel {
 
         setLayout( main_layout );
 
-        input_topic_editor->resize(150, input_topic_editor->height());
+        //input_topic_editor->resize(150, input_topic_editor->height());
 
         // Next we make signal/slot connections.
         //connect( input_topic_editor, SIGNAL( editingFinished() ), this, SLOT( setTopic() ));
@@ -95,8 +106,24 @@ namespace tiffer_panel {
         connect(nav_button, SIGNAL(clicked()), this, SLOT(navigationCallback()));
         connect(stop_button, SIGNAL(clicked()), this, SLOT(stopCallback()));
 
-        input_topic_editor->setText( input_topic );
-        setTopic();
+        //input_topic_editor->setText( input_topic );
+        //setTopic();
+
+        location_manager_.reset(new LocationManager);
+
+        for(auto&it : location_manager_->getLocations())
+        {
+            location_box_->addItem(QString::fromStdString(it.first));
+        }
+
+        location_mark_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("/tiffer_panel/Navigation/KnownLocations", 2, true);
+
+        publishLocationsToRviz();
+
+        nav_stop_pub_ = nh_.advertise<actionlib_msgs::GoalID>("/move_base/cancel", 1, true);
+        odom_sub_ = nh_.subscribe("/odom", 10, &TifferPanel::odomCallback, this);
+
+        stopCallback();
     }
 
     void TifferPanel::setTopic()
@@ -203,14 +230,136 @@ namespace tiffer_panel {
         pose.orientation.w = tt.rotation.w;
     }
 
+    void TifferPanel::odomCallback(const nav_msgs::OdometryConstPtr &msg)
+    {
+        odom_ = *msg;
+    }
+
     bool TifferPanel::addLocation(const geometry_msgs::Pose &pose, const std::string &name)
     {
-        //if(location_manager_)
+        if(location_manager_->knownLocation(name))
+        {
+            QMessageBox::StandardButton replay;
+            if(QMessageBox::question(this, QString::fromUtf8("确认"),
+                QString::fromStdString(name) + QString::fromUtf8(" 已经存在，点击确认更新。 "),
+                QMessageBox::Yes | QMessageBox::No) == QMessageBox::StandardButton::No){
+                    return false;
+                }
+            else{
+                location_box_->addItem(QString::fromStdString(name));
+            }
+            location_manager_->addLocation(name, pose);
+
+            publishLocationsToRviz();
+            return true;
+        }
+    }
+
+    void TifferPanel::publishLocationsToRviz()
+    {
+        location_marks_.markers.clear();
+        for(auto&it : location_manager_->getLocations())
+        {
+            visualization_msgs::Marker new_mark;
+            new_mark.header.frame_id = "map";
+            new_mark.header.stamp = ros::Time::now();
+            new_mark.id = location_marks_.markers.size();
+            new_mark.action = new_mark.ADD;
+            new_mark.type = new_mark.TEXT_VIEW_FACING;
+            new_mark.pose = it.second.location;
+            new_mark.pose.position.z = 0.15;
+            new_mark.text = it.first;
+            new_mark.scale.z = 0.5;
+            new_mark.color.r = new_mark.color.a = 1;
+            location_marks_.markers.push_back(new_mark);
+        }
+        location_mark_pub_.publish(location_marks_);
     }
 
     void TifferPanel::removeLocationCallback()
     {
+        std::string name = location_box_->currentText().toStdString();
+        QMessageBox confirmation(QMessageBox::Question, QObject::trUtf8("确认"), 
+            QObject::trUtf8("确认移除当前位置 [") + QString::fromStdString(name + "] ?"));
+        QPushButton *yes = confirmation.addButton(trUtf8("确 认"), QMessageBox::YesRole);
+        QPushButton *no  = confirmation.addButton(trUtf8("取 消"), QMessageBox::NoRole);
 
+        confirmation.exec();
+
+        if(confirmation.clickedButton() == yes){
+            location_manager_->removeLocation(name);
+            location_box_->removeItem(location_box_->currentIndex());
+            publishLocationsToRviz();
+
+            QMessageBox accept;
+            setRobotStatus(NavStatus::INPROGRESS);
+            accept.setText(trUtf8("已确认desu"));
+            accept.exec();
+        }
+        else if(confirmation.clickedButton() == no){
+            QMessageBox reject;
+            setRobotStatus(NavStatus::IDLE);
+            reject.setText(trUtf8("已取消desu"));
+            reject.exec();
+        }
+    }
+
+    void TifferPanel::goToLocationCallback()
+    {
+        std::string location_name = location_box_->currentText().toStdString();
+        bool find_location = false;
+        KnownLocation target_location;
+        for(auto&it : location_manager_->getLocations())
+        {
+            if(location_name == it.first)
+            {
+                find_location = true;
+                target_location = it.second;
+                break;
+            }
+        }
+        if(!find_location)
+        {
+            //ERROR("Location " << location_name << " not found");
+            qDebug() << "Location not found";
+            return;
+        }
+        moveToLocation(target_location);
+    }
+
+    void TifferPanel::moveToLocation(const KnownLocation &location)
+    {
+        setRobotStatus(NavStatus::INPROGRESS);
+        static int id = 0;
+        move_base_msgs::MoveBaseGoal goal;
+        goal.target_pose.header.frame_id = "map";
+        goal.target_pose.header.stamp = ros::Time::now();
+        goal.target_pose.header.seq = id;
+        id++;
+        goal.target_pose.pose = location.location;
+
+        if(!move_base_client_.waitForServer(ros::Duration(5.0)))
+            //ERROR("Can not connect to move_base server");
+            qDebug() << "Can not connect to move_base server";
+        else
+            move_base_client_.sendGoal(goal);
+    }
+
+    void TifferPanel::removeCruiseCallback()
+    {
+        if(cruise_path_mark_.points.size() > 0)
+        {
+            cruise_number_mark_.markers[cruise_number_mark_.markers.size() - 1].action = 
+                cruise_number_mark_.markers[cruise_number_mark_.markers.size() - 1].DELETE;
+            cruise_path_mark_.points.pop_back();
+            cruise_number_pub_.publish(cruise_number_mark_);
+            cruise_path_pub_.publish(cruise_path_mark_);
+            cruise_number_mark_.markers.pop_back();
+            if(cruise_path_.size() > 0){
+                location_widget_->removeItemWidget(location_widget_->item(cruise_path_.size() - 1));
+                cruise_path_.pop_back();
+            }
+        }
     }
 
     void TifferPanel::navigationCallback()
@@ -221,8 +370,25 @@ namespace tiffer_panel {
     void TifferPanel::stopCallback()
     {
         actionlib_msgs::GoalID stop_msg;
-        //nav_stop_pub_.publish(stop_msg);
+        nav_stop_pub_.publish(stop_msg);
         qDebug() << "stop";
+        if(in_cruise_mode_)
+            this->clearCruise();
+    }
+
+    void TifferPanel::clearCruise()
+    {
+        for(int i = 0; i < cruise_number_mark_.markers.size(); i++)
+            cruise_number_mark_.markers[i].action = cruise_number_mark_.markers[i].DELETE;
+        cruise_number_pub_.publish(cruise_number_mark_);
+        cruise_path_mark_.points.clear();
+        cruise_path_pub_.publish(cruise_path_mark_);
+        cruise_number_mark_.markers.clear();
+        if(cruise_path_.size() > 0)
+            cruise_path_.pop_back();
+        cruise_path_.clear();
+        location_widget_->clear();
+        in_cruise_mode_ = false;
     }
 
     void TifferPanel::addLine(QVBoxLayout* layout)

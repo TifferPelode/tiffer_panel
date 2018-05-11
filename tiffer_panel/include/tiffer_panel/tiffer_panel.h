@@ -51,6 +51,7 @@
 #include <QLabel>
 #include <QTimer>
 #include <QLine>
+#include <QSpacerItem>
 
 #include <QDebug>
 
@@ -89,19 +90,44 @@ class TifferPanel: public rviz::Panel
         void removeLocationCallback();
         void navigationCallback();
         void stopCallback();
+        void odomCallback(const nav_msgs::OdometryConstPtr &msg);
+        void removeCruiseCallback();
+        void goToLocationCallback();
+        void clearCruise();
 
     private:
         void addLine(QVBoxLayout* layout);
+        void publishLocationsToRviz();
         bool addLocation(const geometry_msgs::Pose &pose, const std::string &name);
         void getCurrentLocation(geometry_msgs::Pose &pose);
         void setRobotStatus(const NavStatus &status);
+        void moveToLocation(const KnownLocation &location);
 
         ros::NodeHandle nh_;
         ros::Publisher location_mark_pub_;
         ros::Publisher nav_stop_pub_;
+        ros::Publisher cruise_path_pub_;
+        ros::Publisher cruise_number_pub_;
+        ros::Publisher application_start_pub_;
+        ros::Subscriber odom_sub_;
+        ros::Subscriber application_finish_sub;
+        nav_msgs::Odometry odom_;
         LocationManagerPtr location_manager_;
+        visualization_msgs::MarkerArray location_marks_;
+        visualization_msgs::MarkerArray cruise_number_mark_;
+        visualization_msgs::Marker cruise_path_mark_;
+        std::vector<KnownLocation> cruise_path_;
+        ros::Subscriber self_localization_sub_;
+        actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> move_base_client_;
+        bool in_cruise_mode_;
+        std::vector<KnownLocation> cruise_path_;
+
         QComboBox* location_box_;
         QLineEdit* status_line_;
+        QListWidget* location_widget_;
+        QPushButton* cruise_remove_button_;
+        QPushButton* cruise_open_button_;
+        QPushButton* cruise_save_button_;
 
     protected:
 
