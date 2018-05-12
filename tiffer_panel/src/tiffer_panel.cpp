@@ -71,6 +71,9 @@ namespace tiffer_panel {
         main_layout->addLayout(cruise_button_layout);
         addLine(main_layout);
 
+        location_widget_ = new QListWidget;
+        main_layout->addWidget(location_widget_);
+
         QHBoxLayout* status_layout = new QHBoxLayout;
         QLabel* status_label = new QLabel(QObject::trUtf8("状态"));
         status_label->setStyleSheet("QLabel { font-size: 20px; }");
@@ -105,6 +108,7 @@ namespace tiffer_panel {
         connect(remove_location_button, SIGNAL(clicked()), this, SLOT(removeLocationCallback()));
         connect(nav_button, SIGNAL(clicked()), this, SLOT(navigationCallback()));
         connect(stop_button, SIGNAL(clicked()), this, SLOT(stopCallback()));
+        
 
         //input_topic_editor->setText( input_topic );
         //setTopic();
@@ -117,13 +121,23 @@ namespace tiffer_panel {
         }
 
         location_mark_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("/tiffer_panel/Navigation/KnownLocations", 2, true);
-
         publishLocationsToRviz();
-
+        
+        cruise_path_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("/tiffer_panel/Navigation/CruisePath",2,true);
         nav_stop_pub_ = nh_.advertise<actionlib_msgs::GoalID>("/move_base/cancel", 1, true);
         odom_sub_ = nh_.subscribe("/odom", 10, &TifferPanel::odomCallback, this);
 
-        stopCallback();
+        cruise_path_mark_.type = cruise_path_mark_.LINE_STRIP;
+        cruise_path_mark_.action = cruise_path_mark_.ADD;
+        cruise_path_mark_.header.frame_id = "map";
+        cruise_path_mark_.points.clear();
+        cruise_path_mark_.pose.orientation.w = 1;
+        cruise_path_mark_.color.g = cruise_path_mark_.color.r = cruise_path_mark_.color.a = 1;
+        cruise_path_mark_.scale.x = cruise_path_mark_.scale.y = cruise_path_mark_.scale.z = 0.05;
+        cruise_number_mark_.markers.clear();
+        cruise_path_.clear();
+
+        //stopCallback();     //with some error
     }
 
     void TifferPanel::setTopic()
@@ -343,6 +357,24 @@ namespace tiffer_panel {
             qDebug() << "Can not connect to move_base server";
         else
             move_base_client_.sendGoal(goal);
+    }
+
+    void TifferPanel::startCruising()
+    {
+        if(cruise_path_.size() == 0)
+        {
+            QMessageBox::information(this, "Error", QString::fromUtf8("没有找到巡航路经."));
+            return;
+        }
+        for(int i = 0; i < cruise_path_.size(); i++)
+        {
+            location_widget_->item(i)->setText(
+                QString::fromStdString(cruise_path_[i].name) + QString::fromUtf8("  等待"));
+            location_widget_->item(i)->setBackgroundColor(QColor::fromRgb(200, 200, 0, 255));
+        }
+        current_cruise_index_ = 0;
+        in_cruise_mode_ = true;
+        goToNextCruiseLocation();
     }
 
     void TifferPanel::removeCruiseCallback()

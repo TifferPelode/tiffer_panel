@@ -93,6 +93,7 @@ class TifferPanel: public rviz::Panel
         void odomCallback(const nav_msgs::OdometryConstPtr &msg);
         void removeCruiseCallback();
         void goToLocationCallback();
+        void startCruising();
         void clearCruise();
 
     private:
@@ -102,6 +103,7 @@ class TifferPanel: public rviz::Panel
         void getCurrentLocation(geometry_msgs::Pose &pose);
         void setRobotStatus(const NavStatus &status);
         void moveToLocation(const KnownLocation &location);
+        void goToNextCruiseLocation();
 
         ros::NodeHandle nh_;
         ros::Publisher location_mark_pub_;
@@ -120,7 +122,7 @@ class TifferPanel: public rviz::Panel
         ros::Subscriber self_localization_sub_;
         actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> move_base_client_;
         bool in_cruise_mode_;
-        std::vector<KnownLocation> cruise_path_;
+        int current_cruise_index_;
 
         QComboBox* location_box_;
         QLineEdit* status_line_;
