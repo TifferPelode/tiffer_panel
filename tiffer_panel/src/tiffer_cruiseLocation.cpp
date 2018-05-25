@@ -13,7 +13,7 @@
 
 #include "tiffer_panel/tiffer_cruiseLocation.h"
 
-namespace tiffer_panel
+namespace Tiffer
 {
     CruiseLocationTool::CruiseLocationTool()
     {
@@ -29,7 +29,7 @@ namespace tiffer_panel
 
     void CruiseLocationTool::updateTopic()
     {
-        pub_ = nh_.advertise<geometry_msgs::PoseStamped>("/Tiffer/MouseCruiseLocation", 1);
+        pub_ = nh_.advertise<geometry_msgs::PoseStamped>("/tiffer_panel/MouseCruiseLocation", 1);
     }
 
     void CruiseLocationTool::onPoseSet(double x, double y, double theta)
@@ -55,4 +55,4 @@ namespace tiffer_panel
 }
 
 #include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(tiffer_panel::CruiseLocationTool, rviz::Tool)
+PLUGINLIB_EXPORT_CLASS(Tiffer::CruiseLocationTool, rviz::Tool)

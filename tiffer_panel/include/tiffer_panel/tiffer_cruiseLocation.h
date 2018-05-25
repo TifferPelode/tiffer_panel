@@ -22,7 +22,7 @@
 
 using namespace rviz;
 
-namespace tiffer_panel
+namespace Tiffer
 {
     class Arrow;
     class DisplayContext;
@@ -45,7 +45,6 @@ namespace tiffer_panel
             ros::NodeHandle nh_;
             ros::Publisher pub_;
     };
-    
 }
 
 #endif

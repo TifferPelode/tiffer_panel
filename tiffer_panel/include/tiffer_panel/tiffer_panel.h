@@ -55,100 +55,110 @@
 
 #include <QDebug>
 
+using namespace Tiffer::Navigation;
 
-namespace tiffer_panel {
-
-    enum NavStatus
-    {
-        IDLE = 0,
-        SUCCESS = 10,
-        INPROGRESS = 20,
-        FAILED = 30,
-        SELF_LOCALIZATION = 40,
-        WAIT_APPLICATION = 50
-    };
-    
-
-class TifferPanel: public rviz::Panel
+namespace Tiffer 
 {
-    Q_OBJECT
-    public:
-        TifferPanel( QWidget* parent = 0 );
+    namespace Navigation
+    {
+        enum NavStatus
+        {
+            IDLE = 0,
+            SUCCESS = 10,
+            INPROGRESS = 20,
+            FAILED = 30,
+            SELF_LOCALIZATION = 40,
+            WAIT_APPLICATION = 50
+        };
+    }
 
-        virtual void load( const rviz::Config& config );
-        virtual void save( rviz::Config config ) const;
+    namespace Visualization
+    {
+        class TifferPanel: public rviz::Panel
+        {
+            Q_OBJECT
+            public:
+                TifferPanel( QWidget* parent = 0 );
 
-        void message_cb(std_msgs::String msg);
-      
+                virtual void load( const rviz::Config& config );
+                virtual void save( rviz::Config config ) const;
 
-    public Q_SLOTS:
-        void setMessage( const QString& message );
-        void setTopic();
+                void message_cb(std_msgs::String msg);
+            
 
-        void localizeCallback();
-        void addLocationCallback();
-        void removeLocationCallback();
-        void navigationCallback();
-        void stopCallback();
-        void odomCallback(const nav_msgs::OdometryConstPtr &msg);
-        void removeCruiseCallback();
-        void goToLocationCallback();
-        void startCruising();
-        void clearCruise();
+            public Q_SLOTS:
+                void setMessage( const QString& message );
+                void setTopic();
 
-    private:
-        void addLine(QVBoxLayout* layout);
-        void publishLocationsToRviz();
-        bool addLocation(const geometry_msgs::Pose &pose, const std::string &name);
-        void getCurrentLocation(geometry_msgs::Pose &pose);
-        void setRobotStatus(const NavStatus &status);
-        void moveToLocation(const KnownLocation &location);
-        void goToNextCruiseLocation();
+                void localizeCallback();
+                void addLocationCallback();
+                void removeLocationCallback();
+                void navigationCallback();
+                void stopCallback();
+                void odomCallback(const nav_msgs::OdometryConstPtr &msg);
+                void removeCruiseCallback();
+                void goToLocationCallback();
+                void startCruising();
+                void clearCruise();
 
-        ros::NodeHandle nh_;
-        ros::Publisher location_mark_pub_;
-        ros::Publisher nav_stop_pub_;
-        ros::Publisher cruise_path_pub_;
-        ros::Publisher cruise_number_pub_;
-        ros::Publisher application_start_pub_;
-        ros::Subscriber odom_sub_;
-        ros::Subscriber application_finish_sub;
-        nav_msgs::Odometry odom_;
-        LocationManagerPtr location_manager_;
-        visualization_msgs::MarkerArray location_marks_;
-        visualization_msgs::MarkerArray cruise_number_mark_;
-        visualization_msgs::Marker cruise_path_mark_;
-        std::vector<KnownLocation> cruise_path_;
-        ros::Subscriber self_localization_sub_;
-        actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> move_base_client_;
-        bool in_cruise_mode_;
-        int current_cruise_index_;
+            private:
+                void addLine(QVBoxLayout* layout);
+                void publishLocationsToRviz();
+                bool addLocation(const geometry_msgs::Pose &pose, const std::string &name);
+                void addToCruiseCallback(const KnownLocation &location);
+                void getCurrentLocation(geometry_msgs::Pose &pose);
+                void setRobotStatus(const NavStatus &status);
+                void moveToLocation(const KnownLocation &location);
+                void goToNextCruiseLocation();
+                void mouseCruiseLocationCallback(const geometry_msgs::PoseStampedConstPtr &msg);
+                void moveBaseResultCallback(const move_base_msgs::MoveBaseActionResultConstPtr &msg);
 
-        QComboBox* location_box_;
-        QLineEdit* status_line_;
-        QListWidget* location_widget_;
-        QPushButton* cruise_remove_button_;
-        QPushButton* cruise_open_button_;
-        QPushButton* cruise_save_button_;
+                ros::NodeHandle nh_;
+                ros::Publisher location_mark_pub_;
+                ros::Publisher nav_stop_pub_;
+                ros::Publisher cruise_path_pub_;
+                ros::Publisher cruise_number_pub_;
+                ros::Publisher application_start_pub_;
+                ros::Subscriber odom_sub_;
+                ros::Subscriber application_finish_sub;
+                ros::Subscriber mouse_cruise_location_sub_;
 
-    protected:
+                nav_msgs::Odometry odom_;
+                LocationManagerPtr location_manager_;
+                visualization_msgs::MarkerArray location_marks_;
+                visualization_msgs::MarkerArray cruise_number_mark_;
+                visualization_msgs::Marker cruise_path_mark_;
+                std::vector<KnownLocation> cruise_path_;
+                actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> move_base_client_;
+                bool in_cruise_mode_;
+                int current_cruise_index_;
 
-        /// One-line text editor for entering the ROS topic to monitor for messages.
-        QLineEdit* input_topic_editor;
+                QComboBox* location_box_;
+                QLineEdit* status_line_;
+                QListWidget* location_widget_;
+                QPushButton* cruise_remove_button_;
+                QPushButton* cruise_open_button_;
+                QPushButton* cruise_save_button_;
 
-        /// Where to display the status messages.
-        QLabel* message_display;
+            protected:
 
-        /// The current name of the input topic.
-        QString input_topic;
+                /// One-line text editor for entering the ROS topic to monitor for messages.
+                QLineEdit* input_topic_editor;
 
-        /// The ROS publisher for the incoming messages.
-        ros::Subscriber subscriber;
+                /// Where to display the status messages.
+                QLabel* message_display;
 
-        ros::NodeHandle nh;
+                /// The current name of the input topic.
+                QString input_topic;
+
+                /// The ROS publisher for the incoming messages.
+                ros::Subscriber subscriber;
+
+                ros::NodeHandle nh;
 
 
-    };
+        };
+    }
 
 } // end namespace
 

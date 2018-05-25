@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-list( APPEND CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
+list( APPEND CMAKE_CXX_FLAGS "-std=c++17 ${CMAKE_CXX_FLAGS}")
 
 # PACKAGE SETUP ########################################
 

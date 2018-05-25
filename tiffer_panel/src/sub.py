@@ -1,16 +1,23 @@
 #!/usr/bin/env python
-import sys
-import os
-
 import rospy 
-from move_base import *
+from nav_msgs.msg import Path
+from math import sqrt
 
 def callback(data):
-    rospy.loginfo(rospy.get_caller_id() + "TP : %s", data.data)
+    len_ = len(data.poses)
+    print "total points: %d" % len_
+
+    sum_ = 0.0
+
+    for i in range(len_ - 1):
+        sum_ += sqrt(pow((data.poses[i+1].pose.position.x - data.poses[i].pose.position.x),2) + pow((data.poses[i+1].pose.position.y - data.poses[i].pose.position.y), 2))
+    
+    print sum_
+
 
 def listener():
-    rospy.init_node('sub_path', anonymous=True)
-    rospy.Subscriber("/move_base/NavfnROS/plan", "nav_msgs/GetPlan", callback)
+    rospy.init_node('cal_path', anonymous=False)
+    rospy.Subscriber("/move_base/NavfnROS/plan", Path, callback)
     rospy.spin()
 
 if __name__ == '__main__':
