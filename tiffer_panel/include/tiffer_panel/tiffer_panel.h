@@ -61,7 +61,7 @@ namespace Tiffer
 {
     namespace Navigation
     {
-        enum NavStatus
+        enum class NavStatus : unsigned int
         {
             IDLE = 0,
             SUCCESS = 10,

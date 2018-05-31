@@ -263,7 +263,6 @@ namespace Tiffer
 
         bool TifferPanel::addLocation(const geometry_msgs::Pose &pose, const std::string &name)
         {
-            qDebug() << "000";
             if(location_manager_->knowLocation(name))
             {
                 //QMessageBox::StandardButton replay;
@@ -271,14 +270,11 @@ namespace Tiffer
                         QString::fromStdString(name) + QString::fromUtf8(" 已经存在，点击确认更新。 "),
                             QMessageBox::Yes | QMessageBox::No) == QMessageBox::StandardButton::No)
                 {
-                    qDebug() << "111";
-
                     return false;
                 }
             }
             else{
                 location_box_->addItem(QString::fromStdString(name));
-                qDebug() << "222";
             }
             location_manager_->addLocation(name, pose);
 
