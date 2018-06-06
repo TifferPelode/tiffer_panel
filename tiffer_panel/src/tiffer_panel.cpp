@@ -136,6 +136,7 @@ namespace Tiffer
             nav_stop_pub_ = nh_.advertise<actionlib_msgs::GoalID>("/move_base/cancel", 1, true);
             odom_sub_ = nh_.subscribe("/odom", 10, &TifferPanel::odomCallback, this);
             nav_status_sub_ = nh_.subscribe("/move_base/result", 10, &TifferPanel::statusCallback, this);
+            path_len_sub_ = nh_.subscribe("/move_base/NavfnROS/plan", 10, &TifferPanel::pathLenCallback, this);
             mouse_cruise_location_sub_ = nh_.subscribe("/tiffer_panel/MouseCruiseLocation", 10,
                                                         &TifferPanel::mouseCruiseLocationCallback, this);
 
@@ -150,6 +151,12 @@ namespace Tiffer
             cruise_path_.clear();
 
             stopCallback();     
+        }
+
+        template<class T>
+        int arr_len(T& arr)
+        {
+            return sizeof(arr) / sizeof(arr[0]);
         }
 
         void TifferPanel::setTopic()
@@ -260,6 +267,17 @@ namespace Tiffer
         void TifferPanel::odomCallback(const nav_msgs::OdometryConstPtr &msg)
         {
             odom_ = *msg;
+        }
+
+        void TifferPanel::pathLenCallback(const nav_msgs::Path &msg)
+        {
+            //qDebug() << arr_len(msg);
+            qDebug() << sizeof(msg.poses);
+            qDebug() << sizeof(msg.poses[0]);
+            qDebug() << sizeof(msg.poses[1]);
+            qDebug() << end(msg.poses) - begin(msg.poses);
+            qDebug() << msg.poses[0].pose.position.x;
+            qDebug() << "----------------";
         }
 
         bool TifferPanel::addLocation(const geometry_msgs::Pose &pose, const std::string &name)
@@ -481,12 +499,13 @@ namespace Tiffer
                 setRobotStatus(NavStatus::SUCCESS);
             }
 
-            if(!in_cruise_mode_){
-                setRobotStatus(NavStatus::IDEL);
+            /*if(!in_cruise_mode_){
+                setRobotStatus(NavStatus::IDLE);
             }
             else if(msg->status.status == msg->status.SUCCEEDED){
-                std_msgs::Bool staus_msg = 
-            }
+                std_msgs::Bool start_msg;
+                start_msg.data = true;
+            }*/
         }
 
         void TifferPanel::moveBaseResultCallback(const move_base_msgs::MoveBaseActionResultConstPtr &msg)

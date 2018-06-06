@@ -27,6 +27,7 @@
 #include <actionlib_msgs/GoalID.h>
 #include <actionlib/client/simple_action_client.h>
 #include <nav_msgs/Odometry.h>
+#include <nav_msgs/Path.h>
 #include <std_srvs/Empty.h>
 #include <move_base_msgs/MoveBaseAction.h>
 #include <std_msgs/Bool.h>
@@ -34,6 +35,8 @@
 #include <std_msgs/UInt32MultiArray.h>
 
 #include "tiffer_panel/tiffer_locationManager.h"
+
+#include <cmath>
 
 #endif
 
@@ -113,6 +116,7 @@ namespace Tiffer
                 void mouseCruiseLocationCallback(const geometry_msgs::PoseStampedConstPtr &msg);
                 void moveBaseResultCallback(const move_base_msgs::MoveBaseActionResultConstPtr &msg);
                 void statusCallback(const move_base_msgs::MoveBaseActionResultConstPtr &msg);
+                void pathLenCallback(const nav_msgs::Path &msg);
 
                 ros::NodeHandle nh_;
                 ros::Publisher location_mark_pub_;
@@ -124,6 +128,7 @@ namespace Tiffer
                 ros::Subscriber nav_status_sub_;
                 ros::Subscriber application_finish_sub;
                 ros::Subscriber mouse_cruise_location_sub_;
+                ros::Subscriber path_len_sub_;
 
                 nav_msgs::Odometry odom_;
                 LocationManagerPtr location_manager_;
