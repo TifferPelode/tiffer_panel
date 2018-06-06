@@ -135,6 +135,7 @@ namespace Tiffer
             cruise_path_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("/tiffer_panel/Navigation/CruisePath",2,true);
             nav_stop_pub_ = nh_.advertise<actionlib_msgs::GoalID>("/move_base/cancel", 1, true);
             odom_sub_ = nh_.subscribe("/odom", 10, &TifferPanel::odomCallback, this);
+            nav_status_sub_ = nh_.subscribe("/move_base/result", 10, &TifferPanel::statusCallback, this);
             mouse_cruise_location_sub_ = nh_.subscribe("/tiffer_panel/MouseCruiseLocation", 10,
                                                         &TifferPanel::mouseCruiseLocationCallback, this);
 
@@ -296,7 +297,22 @@ namespace Tiffer
                 new_mark.type = new_mark.TEXT_VIEW_FACING;
                 new_mark.pose = it.second.location;
                 new_mark.pose.position.z = 0.15;
-                new_mark.text = it.first;
+                
+                //it.first -> std::string
+                std::cout << "it -> first: " << it.first << std::endl;
+                QString tr1(tr(it.first.data()));
+
+                if(typeid(it.first) == typeid(std::string)) 
+                    std::cout << "it.first is std::string." << std::endl;
+
+                std::cout << (typeid(tr1) == typeid(QString)) << std::endl;
+
+                QString tr2 = tr1.toUtf8();
+                qDebug() << "tr2 is :" << tr2;
+                new_mark.text = tr2.toStdString();
+
+                //new_mark.text = it.first;  //text -> string
+
                 new_mark.scale.z = 0.5;
                 new_mark.color.r = new_mark.color.a = 1;
                 location_marks_.markers.push_back(new_mark);
@@ -366,9 +382,10 @@ namespace Tiffer
             id++;
             goal.target_pose.pose = location.location;
 
-            if(!move_base_client_.waitForServer(ros::Duration(5.0)))
+            if(!move_base_client_.waitForServer(ros::Duration(5.0))){
                 //ERROR("Can not connect to move_base server");
                 qDebug() << "Can not connect to move_base server";
+            }
             else
                 move_base_client_.sendGoal(goal);
         }
@@ -454,8 +471,27 @@ namespace Tiffer
             goToNextCruiseLocation();
         }
 
+        void TifferPanel::statusCallback(const move_base_msgs::MoveBaseActionResultConstPtr &msg)
+        {
+            ROS_INFO_STREAM("Result" << msg->status);
+            if(msg->status.status == msg->status.SUCCEEDED)
+            {
+                ROS_INFO_STREAM("current goal name: " << msg->status.text);
+                ROS_INFO_STREAM("current status: " << msg->status);
+                setRobotStatus(NavStatus::SUCCESS);
+            }
+
+            if(!in_cruise_mode_){
+                setRobotStatus(NavStatus::IDEL);
+            }
+            else if(msg->status.status == msg->status.SUCCEEDED){
+                std_msgs::Bool staus_msg = 
+            }
+        }
+
         void TifferPanel::moveBaseResultCallback(const move_base_msgs::MoveBaseActionResultConstPtr &msg)
         {
+            ROS_INFO_STREAM("Result" << msg->status);
             if(!in_cruise_mode_)
                 setRobotStatus(NavStatus::IDLE);
             else if(msg->status.status == msg->status.SUCCEEDED)
@@ -553,7 +589,7 @@ namespace Tiffer
                 case NavStatus::SUCCESS:
                     status_line_->setText(QObject::trUtf8("完成了"));
                     status_line_->setStyleSheet(
-                        "QLineEdit { background: rgb(0, 255, 255);"\
+                        "QLineEdit { background: rgb(255, 215, 0);"\
                         " color: rgb(0, 0, 0); font-size: 20px;}"
                     );
                     break;

@@ -112,6 +112,7 @@ namespace Tiffer
                 void goToNextCruiseLocation();
                 void mouseCruiseLocationCallback(const geometry_msgs::PoseStampedConstPtr &msg);
                 void moveBaseResultCallback(const move_base_msgs::MoveBaseActionResultConstPtr &msg);
+                void statusCallback(const move_base_msgs::MoveBaseActionResultConstPtr &msg);
 
                 ros::NodeHandle nh_;
                 ros::Publisher location_mark_pub_;
@@ -120,6 +121,7 @@ namespace Tiffer
                 ros::Publisher cruise_number_pub_;
                 ros::Publisher application_start_pub_;
                 ros::Subscriber odom_sub_;
+                ros::Subscriber nav_status_sub_;
                 ros::Subscriber application_finish_sub;
                 ros::Subscriber mouse_cruise_location_sub_;
 
