@@ -271,12 +271,14 @@ namespace Tiffer
 
         void TifferPanel::pathLenCallback(const nav_msgs::Path &msg)
         {
-            //qDebug() << arr_len(msg);
-            qDebug() << sizeof(msg.poses);
-            qDebug() << sizeof(msg.poses[0]);
-            qDebug() << sizeof(msg.poses[1]);
-            qDebug() << end(msg.poses) - begin(msg.poses);
-            qDebug() << msg.poses[0].pose.position.x;
+            int len_ = end(msg.poses) - begin(msg.poses);
+            double sum_ = 0.0;
+            for(auto i = 0; i < len_; i++)
+            {
+                sum_ += sqrt(pow((msg.poses[i+1].pose.position.x - msg.poses[i].pose.position.x), 2) + pow((msg.poses[i+1].pose.position.y - msg.poses[i].pose.position.y), 2));
+                //qDebug() << sum_;
+            }
+            qDebug() << sum_;
             qDebug() << "----------------";
         }
 
