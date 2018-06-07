@@ -73,9 +73,16 @@ namespace Tiffer
             main_layout->addLayout(cruise_button_layout);
             addLine(main_layout);
 
-            location_widget_ = new QListWidget;
-            main_layout->addWidget(location_widget_);
+            QLabel* path_label = new QLabel();
+            path_label->setText(QObject::trUtf8("全局规划路经长度:"));
+            path_len_label_ = new QLabel();
+            main_layout->addWidget(path_label);
+            main_layout->addWidget(path_len_label_);
             addLine(main_layout);
+
+            //location_widget_ = new QListWidget;
+            //main_layout->addWidget(location_widget_);
+            //addLine(main_layout);
 
             QPushButton* cruise_button = new QPushButton(QObject::trUtf8("开始巡航"));
             main_layout->addWidget(cruise_button);
@@ -272,13 +279,15 @@ namespace Tiffer
         void TifferPanel::pathLenCallback(const nav_msgs::Path &msg)
         {
             int len_ = end(msg.poses) - begin(msg.poses);
-            float sum_ = 0.0;
+            double sum_ = 0.0;
             for(auto i = 0; i < len_ - 1; i++)
             {
                 sum_ += sqrt(pow((msg.poses[i+1].pose.position.x - msg.poses[i].pose.position.x), 2) + pow((msg.poses[i+1].pose.position.y - msg.poses[i].pose.position.y), 2));
             }
             qDebug() << sum_;
             qDebug() << "----------------";
+            
+            path_len_label_->setNum(sum_);
         }
 
         bool TifferPanel::addLocation(const geometry_msgs::Pose &pose, const std::string &name)

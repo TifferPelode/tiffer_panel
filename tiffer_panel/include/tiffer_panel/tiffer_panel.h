@@ -141,6 +141,7 @@ namespace Tiffer
                 int current_cruise_index_;
 
                 QComboBox* location_box_;
+                QLabel* path_len_label_;
                 QLineEdit* status_line_;
                 QListWidget* location_widget_;
                 QPushButton* cruise_remove_button_;
