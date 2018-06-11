@@ -74,15 +74,16 @@ namespace Tiffer
             addLine(main_layout);
 
             QLabel* path_label = new QLabel();
-            path_label->setText(QObject::trUtf8("全局规划路经长度:"));
+            //path_label->setText(QObject::trUtf8("全局规划路经长度:"));
+            path_label->setText(QObject::trUtf8("导航剩余时间"));
             path_len_label_ = new QLabel();
             main_layout->addWidget(path_label);
             main_layout->addWidget(path_len_label_);
             addLine(main_layout);
 
-            //location_widget_ = new QListWidget;
-            //main_layout->addWidget(location_widget_);
-            //addLine(main_layout);
+            location_widget_ = new QListWidget;
+            main_layout->addWidget(location_widget_);
+            addLine(main_layout);
 
             QPushButton* cruise_button = new QPushButton(QObject::trUtf8("开始巡航"));
             main_layout->addWidget(cruise_button);
@@ -143,7 +144,8 @@ namespace Tiffer
             nav_stop_pub_ = nh_.advertise<actionlib_msgs::GoalID>("/move_base/cancel", 1, true);
             odom_sub_ = nh_.subscribe("/odom", 10, &TifferPanel::odomCallback, this);
             nav_status_sub_ = nh_.subscribe("/move_base/result", 10, &TifferPanel::statusCallback, this);
-            path_len_sub_ = nh_.subscribe("/move_base/NavfnROS/plan", 10, &TifferPanel::pathLenCallback, this);
+            path_len_sub_ = nh_.subscribe("/move_base/NavfnROS/plan", 10, &TifferPanel::globalPathLenCallback, this);
+            nav_time_sub_ = nh_.subscribe("/move_base/current_goal", 10, &TifferPanel::remainNavTimeCallback, this);
             mouse_cruise_location_sub_ = nh_.subscribe("/tiffer_panel/MouseCruiseLocation", 10,
                                                         &TifferPanel::mouseCruiseLocationCallback, this);
 
@@ -274,9 +276,29 @@ namespace Tiffer
         void TifferPanel::odomCallback(const nav_msgs::OdometryConstPtr &msg)
         {
             odom_ = *msg;
+            //ROS_INFO_STREAM("current pose: \n    x: " << odom_.pose.pose.position.x);
+            //ROS_INFO_STREAM("Goal odomCallback: \n    x: " << goal_.pose.position.x);
+            double result;
+            result = sqrt(pow((odom_.pose.pose.position.x - goal_.pose.position.x), 2) + pow((odom_.pose.pose.position.y - goal_.pose.position.y), 2));
+            result /= odom_.twist.twist.linear.x;
+            if(odom_.twist.twist.linear.x == 0) {
+                path_len_label_->setText(trUtf8("已到达目标点"));
+                //ROS_INFO_STREAM("Get Goal");
+            }
+            else {
+                path_len_label_->setNum(result);
+                //ROS_INFO_STREAM("remain time :" << result);
+            }
+                
         }
 
-        void TifferPanel::pathLenCallback(const nav_msgs::Path &msg)
+        void TifferPanel::remainNavTimeCallback(const geometry_msgs::PoseStampedConstPtr &msg)
+        {
+            goal_ = *msg;
+            //ROS_INFO_STREAM("Goal: \n    x: " << goal_.pose.position.x);
+        }
+
+        void TifferPanel::globalPathLenCallback(const nav_msgs::Path &msg)
         {
             int len_ = end(msg.poses) - begin(msg.poses);
             double sum_ = 0.0;
@@ -287,7 +309,7 @@ namespace Tiffer
             qDebug() << sum_;
             qDebug() << "----------------";
             
-            path_len_label_->setNum(sum_);
+            //path_len_label_->setNum(sum_);
         }
 
         bool TifferPanel::addLocation(const geometry_msgs::Pose &pose, const std::string &name)

@@ -116,7 +116,8 @@ namespace Tiffer
                 void mouseCruiseLocationCallback(const geometry_msgs::PoseStampedConstPtr &msg);
                 void moveBaseResultCallback(const move_base_msgs::MoveBaseActionResultConstPtr &msg);
                 void statusCallback(const move_base_msgs::MoveBaseActionResultConstPtr &msg);
-                void pathLenCallback(const nav_msgs::Path &msg);
+                void globalPathLenCallback(const nav_msgs::Path &msg);
+                void remainNavTimeCallback(const geometry_msgs::PoseStampedConstPtr &msg);
 
                 ros::NodeHandle nh_;
                 ros::Publisher location_mark_pub_;
@@ -129,6 +130,7 @@ namespace Tiffer
                 ros::Subscriber application_finish_sub;
                 ros::Subscriber mouse_cruise_location_sub_;
                 ros::Subscriber path_len_sub_;
+                ros::Subscriber nav_time_sub_;
 
                 nav_msgs::Odometry odom_;
                 LocationManagerPtr location_manager_;
@@ -137,6 +139,7 @@ namespace Tiffer
                 visualization_msgs::Marker cruise_path_mark_;
                 std::vector<KnownLocation> cruise_path_;
                 actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> move_base_client_;
+                geometry_msgs::PoseStamped goal_;
                 bool in_cruise_mode_;
                 int current_cruise_index_;
 
