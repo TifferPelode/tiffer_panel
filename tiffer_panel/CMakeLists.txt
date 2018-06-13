@@ -28,9 +28,9 @@ if(rviz_QT_VERSION VERSION_LESS "5")
   qt4_wrap_cpp(QT_MOC include/tiffer_panel/tiffer_panel.h include/tiffer_panel/tiffer_locationManager.h include/tiffer_panel/tiffer_cruiseLocation.h)
 else()
   message(tiffer "Using Qt5 based on the rviz_QT_VERSION: ${rviz_QT_VERSION}")
-  find_package(Qt5 ${rviz_QT_VERSION} EXACT REQUIRED Core Widgets)
+  find_package(Qt5 ${rviz_QT_VERSION} EXACT REQUIRED Core Widgets Multimedia)
   ## make target_link_libraries(${QT_LIBRARIES}) pull in all required dependencies
-  set(QT_LIBRARIES Qt5::Core Qt5::Widgets)
+  set(QT_LIBRARIES Qt5::Core Qt5::Widgets Qt5::Multimedia)
   qt5_wrap_cpp(QT_MOC include/tiffer_panel/tiffer_panel.h include/tiffer_panel/tiffer_locationManager.h include/tiffer_panel/tiffer_cruiseLocation.h)
 endif()
 

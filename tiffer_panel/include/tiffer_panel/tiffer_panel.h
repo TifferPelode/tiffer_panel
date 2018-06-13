@@ -55,6 +55,7 @@
 #include <QTimer>
 #include <QLine>
 #include <QSpacerItem>
+#include <QAudioInput>
 
 #include <QDebug>
 
@@ -150,6 +151,8 @@ namespace Tiffer
                 QPushButton* cruise_remove_button_;
                 QPushButton* cruise_open_button_;
                 QPushButton* cruise_save_button_;
+                QFile *file;
+                QAudioInput *input;
 
             protected:
 

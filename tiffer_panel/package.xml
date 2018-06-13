@@ -14,10 +14,19 @@
   <build_depend>std_msgs</build_depend>
   <run_depend>std_msgs</run_depend>
 
+  <build_depend>actionlib</build_depend>
+  <run_depend>actionlib</run_depend>
+  
+  <build_depend>actionlib_msg</build_depend>
+  <run_depend>actionlib_msg</run_depend>
+
   <build_depend>qtbase5-dev</build_depend>
+  <build_depend>qtmultimedia5-dev</build_depend>
   <run_depend>libqt5-core</run_depend>
   <run_depend>libqt5-gui</run_depend>
   <run_depend>libqt5-widgets</run_depend>
+  <run_depend>libqt5-multimedia5</run_depend>
+  <run_depend>libqt5-multimediawidgets5</run_depend>
 
   <export>
       <rviz plugin="${prefix}/plugin_description.xml"/>
