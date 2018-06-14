@@ -1,13 +1,16 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
+#python2.7
 
+import os
+import sys
 import rospy
 import actionlib
 from actionlib_msgs.msg import *
 from geometry_msgs.msg import Twist, Pose, Point, Quaternion
 from std_msgs.msg import String
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
-import sys
+
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -47,15 +50,15 @@ if __name__ == '__main__':
         find_words = list()
         find_words.append(u'饮水机')
         find_words.append(u'原点')
-        rospy.init_node("STC",anonymous=True)
-        rospy.Subscriber("xfspeech", String, cb)
+        rospy.init_node("Tiffer",anonymous=True)
+        #rospy.Subscriber("xfspeech", String, cb)
 
         marker.append(Pose(Point(3.284, 5.337, 0.0), \
             Quaternion(0.0, 0.0, -0.245, 0.970)))
         marker.append(Pose(Point(3.563, 10.989, 0.0), \
             Quaternion(0.0, 0.0, 1.000, 0.029)))
 
-        cmd_vel_pub = rospy.Publisher("cmd_vel", Twist, queue_size=5)
+        #cmd_vel_pub = rospy.Publisher("cmd_vel", Twist, queue_size=5)
         move_base = actionlib.SimpleActionClient("move_base", MoveBaseAction)
 
         rospy.loginfo("Waiting for move_base action server...")
@@ -67,4 +70,4 @@ if __name__ == '__main__':
 
         rospy.spin()
     except rospy.ROSInterruptException:
-rospy.loginfo("InterruptException.")
+        rospy.loginfo("InterruptException.")
