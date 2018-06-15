@@ -13,6 +13,7 @@
 #ifndef Q_MOC_RUN
 
 #include <ros/ros.h>
+#include <ros/package.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -104,6 +105,8 @@ namespace Tiffer
                 void goToLocationCallback();
                 void startCruising();
                 void clearCruise();
+                void asrPressCallback();
+                void asrReleaseCallback();
 
             private:
                 void addLine(QVBoxLayout* layout);
@@ -119,6 +122,7 @@ namespace Tiffer
                 void statusCallback(const move_base_msgs::MoveBaseActionResultConstPtr &msg);
                 void globalPathLenCallback(const nav_msgs::Path &msg);
                 void remainNavTimeCallback(const geometry_msgs::PoseStampedConstPtr &msg);
+                
 
                 ros::NodeHandle nh_;
                 ros::Publisher location_mark_pub_;
@@ -151,8 +155,8 @@ namespace Tiffer
                 QPushButton* cruise_remove_button_;
                 QPushButton* cruise_open_button_;
                 QPushButton* cruise_save_button_;
-                QFile *file;
-                QAudioInput *input;
+                QFile* result_file_;
+                QAudioInput* input;
 
             protected:
 

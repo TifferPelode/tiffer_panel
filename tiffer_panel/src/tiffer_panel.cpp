@@ -81,6 +81,10 @@ namespace Tiffer
             main_layout->addWidget(path_len_label_);
             addLine(main_layout);
 
+            QPushButton* asr_button = new QPushButton(QObject::trUtf8("语音"));
+            main_layout->addWidget(asr_button);
+            addLine(main_layout);
+
             location_widget_ = new QListWidget;
             main_layout->addWidget(location_widget_);
             addLine(main_layout);
@@ -126,6 +130,8 @@ namespace Tiffer
             connect(cruise_remove_button_, SIGNAL(clicked()), this, SLOT(removeCruiseCallback()));
             connect(cruise_cleaar_button, SIGNAL(clicked()), this, SLOT(clearCruise()));
             connect(cruise_button, SIGNAL(clicked()), this, SLOT(startCruising()));
+            connect(asr_button, SIGNAL(pressed()), this, SLOT(asrPressCallback()));
+            connect(asr_button, SIGNAL(released()), this, SLOT(asrReleaseCallback()));
 
             //input_topic_editor->setText( input_topic );
             //setTopic();
@@ -606,6 +612,81 @@ namespace Tiffer
             cruise_path_.clear();
             location_widget_->clear();
             in_cruise_mode_ = false;
+        }
+
+        void TifferPanel::asrPressCallback()
+        {
+            qDebug() << "press";
+
+            result_file_ =new QFile();
+
+            std::string path_to_file = ros::package::getPath("tiffer_panel") + "/file/t.pcm";
+            QString trans = QString::fromUtf8(path_to_file.c_str());
+            result_file_->setFileName(trans);//设置其实设置音频文件的存放路径(输入音频名及存放路径)
+
+            bool is_open =result_file_->open(QIODevice::WriteOnly | QIODevice::Truncate);
+
+            if(!is_open)
+            {
+                qDebug()<<"打开失败失败"<<endl;
+                exit(1);
+            }
+
+            QAudioFormat format;
+            format.setSampleRate(16000); //设置采样的赫兹
+            format.setChannelCount(1); //设置通道数
+            format.setSampleSize(16);   //设置样本大小，一般为8或者16
+            format.setCodec("audio/pcm");//设置编解码器
+            format.setByteOrder(QAudioFormat::LittleEndian);//设置大小端
+            format.setSampleType(QAudioFormat::UnSignedInt);//设置采样格式
+
+            QAudioDeviceInfo info = QAudioDeviceInfo::defaultInputDevice();
+            QString str=info.deviceName();
+
+            qDebug()<<"使用的录音设备是:"<<str<<endl;
+
+            if(!info.isFormatSupported(format))
+            {
+                format = info.nearestFormat(format);
+            }
+
+            //input = new QAudioInput(format, this);
+
+            qDebug() << "Record Start...";
+
+            //input->start(result_file_);
+        }
+
+        void TifferPanel::asrReleaseCallback()
+        {
+            qDebug() << "release";
+
+            if(0 == system("python /home/tiffer/tiffer-catkin/src/tiffer_panel/python/asr.py")){
+                qDebug() << "asr_bd_ol success.";
+            }else{
+                qDebug() << "asr_bd_ol failed.";
+            }
+
+            QFile file_("/home/tiffer/tiffer-catkin/src/tiffer_panel/file/result");
+            if(file_.exists()){
+                qDebug() << "file exists.";
+            }else{
+                qDebug() << "file connot found.";
+            }
+
+            if(!file_.open(QIODevice::ReadWrite)){
+                qDebug() << "open failed.";
+            }else{
+                qDebug() << "open success.";
+            }
+
+            char buf[1024];
+            qint64 len = file_.readLine(buf, 1024);
+            if(len != -1){
+                qDebug() << buf;
+            }
+
+            file_.close();
         }
 
         void TifferPanel::addLine(QVBoxLayout* layout)
