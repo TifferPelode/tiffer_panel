@@ -83,6 +83,8 @@ namespace Tiffer
 
             QPushButton* asr_button = new QPushButton(QObject::trUtf8("语音"));
             main_layout->addWidget(asr_button);
+            asr_result_label_ = new QLabel();
+            main_layout->addWidget(asr_result_label_);
             addLine(main_layout);
 
             location_widget_ = new QListWidget;
@@ -130,7 +132,7 @@ namespace Tiffer
             connect(cruise_remove_button_, SIGNAL(clicked()), this, SLOT(removeCruiseCallback()));
             connect(cruise_cleaar_button, SIGNAL(clicked()), this, SLOT(clearCruise()));
             connect(cruise_button, SIGNAL(clicked()), this, SLOT(startCruising()));
-            connect(asr_button, SIGNAL(pressed()), this, SLOT(asrPressCallback()));
+            //connect(asr_button, SIGNAL(pressed()), this, SLOT(asrPressCallback()));
             connect(asr_button, SIGNAL(released()), this, SLOT(asrReleaseCallback()));
 
             //input_topic_editor->setText( input_topic );
@@ -661,32 +663,45 @@ namespace Tiffer
         {
             qDebug() << "release";
 
-            if(0 == system("python /home/tiffer/tiffer-catkin/src/tiffer_panel/python/asr.py")){
+            std::string cur_path = ros::package::getPath("tiffer_panel");
+            std::string rec_com = "arecord -c 1 -t wav -f S16_LE -r 16000 -d 5 " + cur_path + "/file/l";
+            std::string asr_com = "python3 " + cur_path + "/python/asr.py";
+            std::string file_com = cur_path + "/file/result";
+
+            //if(0 == system("arecord -c 1 -t wav -f S16_LE -r 16000 -d 5 home/tiffer/tiffer-catkin/src/tiffer_panel/file/l")){
+            if(0 == system(rec_com.data())){
+                qDebug() << "record success.";
+            }else{
+                qDebug() << "record error.";
+            }
+
+            if(0 == system(asr_com.data())){
                 qDebug() << "asr_bd_ol success.";
             }else{
                 qDebug() << "asr_bd_ol failed.";
             }
 
-            QFile file_("/home/tiffer/tiffer-catkin/src/tiffer_panel/file/result");
-            if(file_.exists()){
+            QFile res_file(file_com.data());
+            if(res_file.exists()){
                 qDebug() << "file exists.";
             }else{
                 qDebug() << "file connot found.";
             }
 
-            if(!file_.open(QIODevice::ReadWrite)){
+            if(!res_file.open(QIODevice::ReadWrite)){
                 qDebug() << "open failed.";
             }else{
                 qDebug() << "open success.";
             }
 
             char buf[1024];
-            qint64 len = file_.readLine(buf, 1024);
+            qint64 len = res_file.readLine(buf, 1024);
             if(len != -1){
                 qDebug() << buf;
             }
+            asr_result_label_->setText(buf);
 
-            file_.close();
+            res_file.close();
         }
 
         void TifferPanel::addLine(QVBoxLayout* layout)
