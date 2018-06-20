@@ -700,13 +700,31 @@ namespace Tiffer
             }
             asr_result_label_->setText(buf);
 
-            std::string str_match(buf);
-            std::cout << str_match << std::endl;
-            if(std::string::npos != str_match.find("c点")){
+            std::string asr_res(buf);
+            std::cout << asr_res << std::endl;
+            bool get_pose = false;
+            KnownLocation target_location;
+            for(auto&it : location_manager_->getLocations())
+            {
+                //if(asr_res == it.first)
+                if(std::string::npos != asr_res.find(it.first))
+                {
+                    get_pose = true;
+                    target_location = it.second;
+                    break;
+                }
+            }
+            if(!get_pose)
+            {
+                qDebug() << "ASR_Location Not Found.";
+            }
+            moveToLocation(target_location);
+
+            /*if(std::string::npos != str_match.find("c点")){
                 qDebug() << "ok";
             }else{
                 qDebug() << "not found";
-            }
+            }*/
 
             res_file.close();
         }
