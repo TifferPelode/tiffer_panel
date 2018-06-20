@@ -668,12 +668,11 @@ namespace Tiffer
             std::string asr_com = "python3 " + cur_path + "/python/asr.py";
             std::string file_com = cur_path + "/file/result";
 
-            //if(0 == system("arecord -c 1 -t wav -f S16_LE -r 16000 -d 5 home/tiffer/tiffer-catkin/src/tiffer_panel/file/l")){
-            if(0 == system(rec_com.data())){
+            /*if(0 == system(rec_com.data())){
                 qDebug() << "record success.";
             }else{
                 qDebug() << "record error.";
-            }
+            }*/
 
             if(0 == system(asr_com.data())){
                 qDebug() << "asr_bd_ol success.";
@@ -700,6 +699,14 @@ namespace Tiffer
                 qDebug() << buf;
             }
             asr_result_label_->setText(buf);
+
+            std::string str_match(buf);
+            std::cout << str_match << std::endl;
+            if(std::string::npos != str_match.find("c点")){
+                qDebug() << "ok";
+            }else{
+                qDebug() << "not found";
+            }
 
             res_file.close();
         }
