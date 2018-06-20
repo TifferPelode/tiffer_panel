@@ -22,7 +22,7 @@ def get_file_content(filePath):
 
 if __name__ == "__main__":
 
-    result = client.asr(get_file_content('/home/tiffer/tiffer-catkin/src/tiffer_panel/file/t'), 'wav', 16000, {
+    result = client.asr(get_file_content('/home/tiffer/tiffer-catkin/src/tiffer_panel/file/l'), 'wav', 16000, {
         'dev_pid': '1536',
     })
 

@@ -649,7 +649,7 @@ namespace Tiffer
 
             if(!info.isFormatSupported(format))
             {
-                format = info.nearestFormat(format);
+                //format = info.nearestFormat(format);
             }
 
             //input = new QAudioInput(format, this);
@@ -664,7 +664,7 @@ namespace Tiffer
             qDebug() << "release";
 
             std::string cur_path = ros::package::getPath("tiffer_panel");
-            std::string rec_com = "arecord -c 1 -t wav -f S16_LE -r 16000 -d 5 " + cur_path + "/file/l";
+            std::string rec_com = "arecord -c 1 -t wav -f S16_LE -r 16000 -d 4 " + cur_path + "/file/l";
             std::string asr_com = "python3 " + cur_path + "/python/asr.py";
             std::string file_com = cur_path + "/file/result";
 
