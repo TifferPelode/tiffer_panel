@@ -31,7 +31,7 @@ else()
   find_package(Qt5 ${rviz_QT_VERSION} EXACT REQUIRED Core Widgets Multimedia)
   ## make target_link_libraries(${QT_LIBRARIES}) pull in all required dependencies
   set(QT_LIBRARIES Qt5::Core Qt5::Widgets Qt5::Multimedia)
-  qt5_wrap_cpp(QT_MOC include/tiffer_panel/tiffer_panel.h include/tiffer_panel/tiffer_locationManager.h include/tiffer_panel/tiffer_cruiseLocation.h)
+  qt5_wrap_cpp(QT_MOC include/tiffer_panel/tiffer_panel.h include/tiffer_panel/tiffer_locationManager.h include/tiffer_panel/tiffer_cruiseLocation.h include/tiffer_panel/tiffer_record.h)
 endif()
 
 add_definitions(-DQT_NO_KEYWORDS)

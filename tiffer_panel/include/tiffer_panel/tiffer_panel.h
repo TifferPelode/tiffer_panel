@@ -36,6 +36,7 @@
 #include <std_msgs/UInt32MultiArray.h>
 
 #include "tiffer_panel/tiffer_locationManager.h"
+#include "tiffer_panel/tiffer_record.h"
 
 #include <cmath>
 
