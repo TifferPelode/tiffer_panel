@@ -41,9 +41,9 @@ private:
         QString asrCom = QString::fromStdString(asr_com);
 
         //record_exec->execute(recCom);
-        //record_exec->execute(asrCom);
+        record_exec->execute(asrCom);
 
-        qDebug() << "aaa";
+        qDebug() << "Thread finished";
 
     }
 };

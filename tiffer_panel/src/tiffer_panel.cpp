@@ -134,9 +134,9 @@ namespace Tiffer
             connect(cruise_remove_button_, SIGNAL(clicked()), this, SLOT(removeCruiseCallback()));
             connect(cruise_cleaar_button, SIGNAL(clicked()), this, SLOT(clearCruise()));
             connect(cruise_button, SIGNAL(clicked()), this, SLOT(startCruising()));
-            //connect(asr_button, SIGNAL(pressed()), this, SLOT(asrPressCallback()));
+            //connect(asr_button_, SIGNAL(pressed()), this, SLOT(asrPressCallback()));
             connect(asr_button_, SIGNAL(released()), this, SLOT(asrReleaseCallback()));
-            connect(record_thread_, SIGNAL(finished), this, SLOT(asrThreadCallback()));
+            connect(record_thread_, SIGNAL(finished()), this, SLOT(asrThreadCallback()));
 
             //input_topic_editor->setText( input_topic );
             //setTopic();
@@ -673,6 +673,8 @@ namespace Tiffer
         {
             qDebug() << "release";
 
+            asr_button_->setEnabled(false);
+
             /*if(0 == system(rec_com.data())){
                 qDebug() << "record success.";
             }else{
@@ -741,6 +743,8 @@ namespace Tiffer
             }*/
 
             res_file.close();
+
+            asr_button_->setEnabled(true);
 
         }
 
