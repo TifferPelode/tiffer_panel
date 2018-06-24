@@ -136,6 +136,7 @@ namespace Tiffer
             connect(cruise_button, SIGNAL(clicked()), this, SLOT(startCruising()));
             //connect(asr_button, SIGNAL(pressed()), this, SLOT(asrPressCallback()));
             connect(asr_button_, SIGNAL(released()), this, SLOT(asrReleaseCallback()));
+            connect(record_thread_, SIGNAL(finished), this, SLOT(asrThreadCallback()));
 
             //input_topic_editor->setText( input_topic );
             //setTopic();
@@ -170,6 +171,13 @@ namespace Tiffer
             cruise_path_.clear();
 
             stopCallback();     
+        }
+
+        TifferPanel::~TifferPanel()
+        {
+            record_thread_->exit(0);
+            record_thread_->wait();
+            record_thread_->deleteLater();
         }
 
         template<class T>
@@ -665,22 +673,26 @@ namespace Tiffer
         {
             qDebug() << "release";
 
-            std::string cur_path = ros::package::getPath("tiffer_panel");
-            std::string rec_com = "arecord -c 1 -t wav -f S16_LE -r 16000 -d 4 " + cur_path + "/file/l";
-            std::string asr_com = "python3 " + cur_path + "/python/asr.py";
-            std::string file_com = cur_path + "/file/result";
-
             /*if(0 == system(rec_com.data())){
                 qDebug() << "record success.";
             }else{
                 qDebug() << "record error.";
-            }*/
+            }
 
             if(0 == system(asr_com.data())){
                 qDebug() << "asr_bd_ol success.";
             }else{
                 qDebug() << "asr_bd_ol failed.";
-            }
+            }*/
+
+            record_thread_->start();
+
+        }
+
+        void TifferPanel::asrThreadCallback()
+        {
+            std::string cur_path = ros::package::getPath("tiffer_panel");
+            std::string file_com = cur_path + "/file/result";
 
             QFile res_file(file_com.data());
             if(res_file.exists()){
@@ -729,6 +741,7 @@ namespace Tiffer
             }*/
 
             res_file.close();
+
         }
 
         void TifferPanel::addLine(QVBoxLayout* layout)

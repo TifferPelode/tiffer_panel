@@ -86,6 +86,7 @@ namespace Tiffer
             Q_OBJECT
             public:
                 TifferPanel( QWidget* parent = 0 );
+                virtual ~TifferPanel();
 
                 virtual void load( const rviz::Config& config );
                 virtual void save( rviz::Config config ) const;
@@ -109,6 +110,7 @@ namespace Tiffer
                 void clearCruise();
                 void asrPressCallback();
                 void asrReleaseCallback();
+                void asrThreadCallback();
 
             private:
                 void addLine(QVBoxLayout* layout);

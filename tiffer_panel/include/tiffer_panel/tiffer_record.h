@@ -13,6 +13,7 @@
 #include <QThread>
 #include <QObject>
 #include <QProcess>
+#include <QDebug>
 
 class Record_thread : public QThread
 {
@@ -39,8 +40,10 @@ private:
         QString recCom = QString::fromStdString(rec_com);
         QString asrCom = QString::fromStdString(asr_com);
 
-        record_exec->execute(recCom);
-        record_exec->execute(asrCom);
+        //record_exec->execute(recCom);
+        //record_exec->execute(asrCom);
+
+        qDebug() << "aaa";
 
     }
 };
