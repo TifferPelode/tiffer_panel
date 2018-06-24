@@ -81,8 +81,8 @@ namespace Tiffer
             main_layout->addWidget(path_len_label_);
             addLine(main_layout);
 
-            QPushButton* asr_button = new QPushButton(QObject::trUtf8("语音"));
-            main_layout->addWidget(asr_button);
+            asr_button_ = new QPushButton(QObject::trUtf8("语音"));
+            main_layout->addWidget(asr_button_);
             asr_result_label_ = new QLabel();
             main_layout->addWidget(asr_result_label_);
             addLine(main_layout);
@@ -120,6 +120,8 @@ namespace Tiffer
 
             setLayout( main_layout );
 
+            record_thread_ = new Record_thread();
+
             //input_topic_editor->resize(150, input_topic_editor->height());
 
             // Next we make signal/slot connections.
@@ -133,7 +135,7 @@ namespace Tiffer
             connect(cruise_cleaar_button, SIGNAL(clicked()), this, SLOT(clearCruise()));
             connect(cruise_button, SIGNAL(clicked()), this, SLOT(startCruising()));
             //connect(asr_button, SIGNAL(pressed()), this, SLOT(asrPressCallback()));
-            connect(asr_button, SIGNAL(released()), this, SLOT(asrReleaseCallback()));
+            connect(asr_button_, SIGNAL(released()), this, SLOT(asrReleaseCallback()));
 
             //input_topic_editor->setText( input_topic );
             //setTopic();
@@ -182,7 +184,7 @@ namespace Tiffer
                 subscriber.shutdown();
             }
             input_topic = input_topic_editor->text();
-            subscriber = nh.subscribe(std::string(input_topic.toStdString()), 100, &TifferPanel::message_cb, this);
+            //subscriber = nh.subscribe(std::string(input_topic.toStdString()), 100, &TifferPanel::message_cb, this);
             Q_EMIT configChanged();
         }
 

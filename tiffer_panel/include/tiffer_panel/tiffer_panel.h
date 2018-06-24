@@ -51,6 +51,7 @@
 #include <QMessageBox>
 #include <QInputDialog>
 #include <QFileDialog>
+#include <QProcess>
 #include <QProgressBar>
 #include <QListWidget>
 #include <QLabel>
@@ -149,6 +150,8 @@ namespace Tiffer
                 bool in_cruise_mode_;
                 int current_cruise_index_;
 
+                Record_thread* record_thread_;
+
                 QComboBox* location_box_;
                 QLabel* path_len_label_;
                 QLabel* asr_result_label_;
@@ -157,6 +160,7 @@ namespace Tiffer
                 QPushButton* cruise_remove_button_;
                 QPushButton* cruise_open_button_;
                 QPushButton* cruise_save_button_;
+                QPushButton* asr_button_;
                 QFile* result_file_;
                 QAudioInput* input;
 
@@ -174,7 +178,7 @@ namespace Tiffer
                 /// The ROS publisher for the incoming messages.
                 ros::Subscriber subscriber;
 
-                ros::NodeHandle nh;
+                //ros::NodeHandle nh;
 
 
         };
