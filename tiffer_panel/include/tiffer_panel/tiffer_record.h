@@ -15,6 +15,8 @@
 #include <QProcess>
 #include <QDebug>
 
+#include "tiffer_panel/tiffer_panel.h"
+
 class Record_thread : public QThread
 {
     //Q_OBJECT
@@ -24,12 +26,6 @@ public:
 private:
     void run()
     {
-        // for(int i = 0; i < 5; i++)
-        // {
-        //     qDebug() << "aaa";
-        //     QThread::sleep(5);
-        // }
-
         std::string cur_path = ros::package::getPath("tiffer_panel");
         std::string rec_com = "arecord -c 1 -t wav -f S16_LE -r 16000 -d 4 " + cur_path + "/file/l";    
         std::string asr_com = "python3 " + cur_path + "/python/asr.py";

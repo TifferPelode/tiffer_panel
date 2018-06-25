@@ -88,12 +88,12 @@ namespace Tiffer
             addLine(main_layout);
 
             location_widget_ = new QListWidget;
-            main_layout->addWidget(location_widget_);
-            addLine(main_layout);
+            //main_layout->addWidget(location_widget_);
+            //addLine(main_layout);
 
             QPushButton* cruise_button = new QPushButton(QObject::trUtf8("开始巡航"));
-            main_layout->addWidget(cruise_button);
-            addLine(main_layout);
+            //main_layout->addWidget(cruise_button);
+            //addLine(main_layout);
 
             QHBoxLayout* status_layout = new QHBoxLayout;
             QLabel* status_label = new QLabel(QObject::trUtf8("状态"));
