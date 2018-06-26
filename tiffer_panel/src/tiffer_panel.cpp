@@ -289,6 +289,28 @@ namespace Tiffer
             pose.orientation.y = tt.rotation.y;
             pose.orientation.z = tt.rotation.z;
             pose.orientation.w = tt.rotation.w;
+
+            /*tf2_ros::Buffer tfBuffer;
+            tf2_ros::TransformListener tfListener(tfBuffer);
+            geometry_msgs::TransformStamped transformStamped;
+
+            try
+            {
+                transformStamped = tfBuffer.lookupTransform("/map", "/base_link", ros::Time(0));
+            }
+            catch (tf2::TransformException &ex){
+                ROS_WARN("%s", ex.what());
+                ros::Duration(1.0).sleep();
+            }
+            geometry_msgs::Transform tt;
+            tf::transformTFToMsg(transformStamped, tt);
+            pose.position.x = tt.translation.x;
+            pose.position.y = tt.translation.y;
+            pose.position.z = tt.translation.z;
+            pose.orientation.x = tt.rotation.x;
+            pose.orientation.y = tt.rotation.y;
+            pose.orientation.z = tt.rotation.z;
+            pose.orientation.w = tt.rotation.w;*/
         }
 
         void TifferPanel::odomCallback(const nav_msgs::OdometryConstPtr &msg)
