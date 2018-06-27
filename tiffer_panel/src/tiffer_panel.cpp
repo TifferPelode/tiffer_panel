@@ -63,7 +63,7 @@ namespace Tiffer
             main_layout->addWidget(stop_button);
             addLine(main_layout);
 
-            QHBoxLayout* cruise_button_layout = new QHBoxLayout;
+            /*QHBoxLayout* cruise_button_layout = new QHBoxLayout;
             QLabel* cruise_label = new QLabel(QObject::trUtf8("巡航路径"));
             cruise_button_layout->addWidget(cruise_label);
             cruise_remove_button_ = new QPushButton(QObject::trUtf8("移除末端点"));
@@ -71,7 +71,7 @@ namespace Tiffer
             QPushButton* cruise_cleaar_button = new QPushButton(QObject::trUtf8("清除路经"));
             cruise_button_layout->addWidget(cruise_cleaar_button);
             main_layout->addLayout(cruise_button_layout);
-            addLine(main_layout);
+            addLine(main_layout);*/
 
             QLabel* path_label = new QLabel();
             //path_label->setText(QObject::trUtf8("全局规划路经长度:"));
@@ -131,8 +131,8 @@ namespace Tiffer
             connect(remove_location_button, SIGNAL(clicked()), this, SLOT(removeLocationCallback()));
             connect(go_button, SIGNAL(clicked()), this, SLOT(goToLocationCallback()));
             connect(stop_button, SIGNAL(clicked()), this, SLOT(stopCallback()));
-            connect(cruise_remove_button_, SIGNAL(clicked()), this, SLOT(removeCruiseCallback()));
-            connect(cruise_cleaar_button, SIGNAL(clicked()), this, SLOT(clearCruise()));
+            //connect(cruise_remove_button_, SIGNAL(clicked()), this, SLOT(removeCruiseCallback()));
+            //connect(cruise_cleaar_button, SIGNAL(clicked()), this, SLOT(clearCruise()));
             connect(cruise_button, SIGNAL(clicked()), this, SLOT(startCruising()));
             //connect(asr_button_, SIGNAL(pressed()), this, SLOT(asrPressCallback()));
             connect(asr_button_, SIGNAL(released()), this, SLOT(asrReleaseCallback()));
@@ -292,18 +292,17 @@ namespace Tiffer
 
             /*tf2_ros::Buffer tfBuffer;
             tf2_ros::TransformListener tfListener(tfBuffer);
-            geometry_msgs::TransformStamped transformStamped;
+            geometry_msgs::TransformStamped ts;
 
             try
             {
-                transformStamped = tfBuffer.lookupTransform("/map", "/base_link", ros::Time(0));
+                ts = tfBuffer.lookupTransform("map", "odom", ros::Time(0));
             }
             catch (tf2::TransformException &ex){
                 ROS_WARN("%s", ex.what());
                 ros::Duration(1.0).sleep();
             }
-            geometry_msgs::Transform tt;
-            tf::transformTFToMsg(transformStamped, tt);
+            geometry_msgs::Transform tt = ts.transform;
             pose.position.x = tt.translation.x;
             pose.position.y = tt.translation.y;
             pose.position.z = tt.translation.z;
