@@ -91,9 +91,16 @@ namespace Tiffer
             //main_layout->addWidget(location_widget_);
             //addLine(main_layout);
 
-            QPushButton* cruise_button = new QPushButton(QObject::trUtf8("开始巡航"));
+            //QPushButton* cruise_button = new QPushButton(QObject::trUtf8("开始巡航"));
             //main_layout->addWidget(cruise_button);
             //addLine(main_layout);
+
+            QProgressBar* clean_progress = new QProgressBar;
+            clean_progress->setOrientation(Qt::Horizontal);
+            clean_progress->setMinimum(0);
+            clean_progress->setMaximum(0);
+            main_layout->addWidget(clean_progress);
+            addLine(main_layout);
 
             QHBoxLayout* status_layout = new QHBoxLayout;
             QLabel* status_label = new QLabel(QObject::trUtf8("状态"));
@@ -108,6 +115,7 @@ namespace Tiffer
                 "QLineEdit { background: rgb(0, 255, 255); color: rgb(0, 0, 0); font-size: 20px;}");
             main_layout->addLayout(status_layout);
             main_layout->addStretch();
+            addLine(main_layout);
 
             QHBoxLayout* message_layout = new QHBoxLayout;
             message_display = new QLabel(QObject::trUtf8("智澜科技"));
@@ -133,7 +141,7 @@ namespace Tiffer
             connect(stop_button, SIGNAL(clicked()), this, SLOT(stopCallback()));
             //connect(cruise_remove_button_, SIGNAL(clicked()), this, SLOT(removeCruiseCallback()));
             //connect(cruise_cleaar_button, SIGNAL(clicked()), this, SLOT(clearCruise()));
-            connect(cruise_button, SIGNAL(clicked()), this, SLOT(startCruising()));
+            //connect(cruise_button, SIGNAL(clicked()), this, SLOT(startCruising()));
             //connect(asr_button_, SIGNAL(pressed()), this, SLOT(asrPressCallback()));
             connect(asr_button_, SIGNAL(released()), this, SLOT(asrReleaseCallback()));
             connect(record_thread_, SIGNAL(finished()), this, SLOT(asrThreadCallback()));
@@ -320,7 +328,7 @@ namespace Tiffer
             double result;
             result = sqrt(pow((odom_.pose.pose.position.x - goal_.pose.position.x), 2) + pow((odom_.pose.pose.position.y - goal_.pose.position.y), 2));
             result /= odom_.twist.twist.linear.x;
-            if(odom_.twist.twist.linear.x == 0) {
+            if(odom_.twist.twist.linear.x == 0 && odom_.twist.twist.angular.z == 0) {
                 path_len_label_->setText(trUtf8("已到达目标点"));
                 //ROS_INFO_STREAM("Get Goal");
             }
