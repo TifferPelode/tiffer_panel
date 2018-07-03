@@ -95,7 +95,7 @@ namespace Tiffer
             //main_layout->addWidget(cruise_button);
             //addLine(main_layout);
 
-            QProgressBar* clean_progress = new QProgressBar;
+            clean_progress = new QProgressBar();
             clean_progress->setOrientation(Qt::Horizontal);
             clean_progress->setMinimum(0);
             clean_progress->setMaximum(0);
@@ -246,6 +246,8 @@ namespace Tiffer
             if(confirmation.clickedButton() == yes){
                 QMessageBox accept;
                 setRobotStatus(NavStatus::INPROGRESS);
+                clean_progress->setMaximum(100);
+                clean_progress->setValue(50);
                 accept.setText(trUtf8("已确认desu"));
                 accept.exec();
             }

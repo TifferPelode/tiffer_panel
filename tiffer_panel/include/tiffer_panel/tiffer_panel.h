@@ -166,6 +166,7 @@ namespace Tiffer
                 QPushButton* cruise_open_button_;
                 QPushButton* cruise_save_button_;
                 QPushButton* asr_button_;
+                QProgressBar* clean_progress;
                 QFile* result_file_;
                 QAudioInput* input;
 
