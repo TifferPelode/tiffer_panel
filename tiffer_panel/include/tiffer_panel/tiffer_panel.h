@@ -40,6 +40,7 @@
 
 #include "tiffer_panel/tiffer_locationManager.h"
 #include "tiffer_panel/tiffer_record.h"
+#include "tiffer_panel/clean_path.h"
 
 #include <cmath>
 
@@ -62,6 +63,9 @@
 #include <QLine>
 #include <QSpacerItem>
 #include <QAudioInput>
+#include <QProgressBar>
+#include <QRadioButton>
+#include <QIcon>
 
 #include <QDebug>
 
@@ -115,6 +119,12 @@ namespace Tiffer
                 void asrReleaseCallback();
                 void asrThreadCallback();
 
+                void b1Callback();
+                void b2Callback();
+                void b3Callback();
+                void b4Callback();
+                void manualCallback();
+
             private:
                 void addLine(QVBoxLayout* layout);
                 void publishLocationsToRviz();
@@ -129,6 +139,7 @@ namespace Tiffer
                 void statusCallback(const move_base_msgs::MoveBaseActionResultConstPtr &msg);
                 void globalPathLenCallback(const nav_msgs::Path &msg);
                 void remainNavTimeCallback(const geometry_msgs::PoseStampedConstPtr &msg);
+                void finishApplicationCallback(const std_msgs::BoolConstPtr &msg);
                 
 
                 ros::NodeHandle nh_;
@@ -137,6 +148,8 @@ namespace Tiffer
                 ros::Publisher cruise_path_pub_;
                 ros::Publisher cruise_number_pub_;
                 ros::Publisher application_start_pub_;
+                ros::Publisher application_finish_pub_;
+                ros::Subscriber application_finish_sub_;
                 ros::Subscriber odom_sub_;
                 ros::Subscriber nav_status_sub_;
                 ros::Subscriber application_finish_sub;
@@ -152,23 +165,52 @@ namespace Tiffer
                 std::vector<KnownLocation> cruise_path_;
                 actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> move_base_client_;
                 geometry_msgs::PoseStamped goal_;
-                bool in_cruise_mode_;
+                move_base_msgs::MoveBaseGoal mbgoal_;
+                bool in_cruise_mode_ = false;
                 int current_cruise_index_;
 
                 Record_thread* record_thread_;
+                Clean_thread* clean_thread_;
 
                 QComboBox* location_box_;
                 QLabel* path_len_label_;
                 QLabel* asr_result_label_;
+                QLabel* known_location_label_;
+                QLabel* path_label_;
+                QLabel* status_label_;
+                QLabel* battery_label_;
+                QLabel* auto_charge_label_;
+                QLabel* hand_display_;
+                QLabel* cruise_label_;
+
                 QLineEdit* status_line_;
                 QListWidget* location_widget_;
+
                 QPushButton* cruise_remove_button_;
                 QPushButton* cruise_open_button_;
                 QPushButton* cruise_save_button_;
                 QPushButton* asr_button_;
-                QProgressBar* clean_progress;
+                QPushButton* localize_button_;
+                QPushButton* add_location_button_;
+                QPushButton* remove_location_button_;
+                QPushButton* go_button_;
+                QPushButton* manual_localize_button_1_;
+                QPushButton* manual_localize_button_2_;
+                QPushButton* manual_localize_button_3_;
+                QPushButton* manual_localize_button_4_;
+                QPushButton* stop_button_;
+                QPushButton* main_manu_button_;
+                QPushButton* cruise_button_;
+                QPushButton* cruise_cleaar_button_;
+
+                QProgressBar* clean_progress_;
                 QFile* result_file_;
                 QAudioInput* input;
+
+                ros::Subscriber battery_sub_;
+                QProgressBar *battery_bar_;
+                QRadioButton *auto_charge_button_;
+                QPushButton *manual_charge_button_;
 
             protected:
 

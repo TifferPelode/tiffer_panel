@@ -6,5 +6,12 @@
       Tiffer's simple panel.
     </description>
   </class>
+  <class name="Cruise Location"
+         type="Tiffer::CruiseLocationTool"
+	 base_class_type="rviz::Tool">
+    <description>
+      Publish a cruise pose for Tiffer.
+    </description>
+  </class>
 </library>
 

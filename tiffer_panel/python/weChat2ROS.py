@@ -66,6 +66,7 @@ def wcMsg(msg):
             goal.target_pose.header.stamp = rospy.Time.now()
             goal.target_pose.pose = marker[0]
             move(goal)
+	    print type(msg['Text'])
 
         pub.publish(cmd_str)
         rate.sleep()

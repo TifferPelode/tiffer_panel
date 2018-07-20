@@ -23,7 +23,7 @@ namespace Tiffer
     void CruiseLocationTool::onInitialize()
     {
         PoseTool::onInitialize();
-        //setName("Tiffer Cruise Location");
+        setName("Tiffer Cruise Location");
         updateTopic();
     }
 

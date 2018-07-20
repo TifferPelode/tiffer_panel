@@ -30,7 +30,6 @@ def cb(data):
         goal.target_pose.pose = marker[1]
         move(goal)
 
-
 def move(goal):
     move_base.send_goal(goal)
     timeout = move_base.wait_for_result(rospy.Duration(200))

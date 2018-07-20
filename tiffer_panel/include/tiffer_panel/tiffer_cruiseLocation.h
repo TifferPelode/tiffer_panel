@@ -10,12 +10,8 @@
 #ifndef TIFFER_CRUISELOCATION_H
 #define TIFFER_CRUISELOCATION_H
 
-#ifndef Q_MOC_RUN
-
 #include <ros/ros.h>
 #include "rviz/default_plugin/tools/pose_tool.h"
-
-#endif
 
 #include <QObject>
 #include <QInputDialog>
@@ -47,4 +43,4 @@ namespace Tiffer
     };
 }
 
-#endif
+#endif /* TIFFER_CRUISELOCATION_H */

@@ -16,7 +16,8 @@ namespace Tiffer
         TifferPanel::TifferPanel( QWidget* parent ) :
         rviz::Panel( parent ),
         //input_topic("/status"),
-        move_base_client_("/move_base", true)
+        move_base_client_("/move_base", true),
+        in_cruise_mode_(false)
         {
 
             QVBoxLayout* main_layout = new QVBoxLayout;
@@ -30,82 +31,130 @@ namespace Tiffer
             input_topic_editor = new QLineEdit;
             topic_layout->addWidget( input_topic_editor );
 
+            QHBoxLayout* hand_layout = new QHBoxLayout;
+            hand_display_ = new QLabel(QObject::trUtf8("功能选择"));
+            hand_display_->setTextFormat(Qt::RichText);
+            hand_display_->setAlignment(Qt::AlignCenter); 
+            hand_layout->addWidget(hand_display_);
+            main_layout->addStretch();
+            main_layout->addLayout(hand_layout);
+
+            QVBoxLayout* manual_layout = new QVBoxLayout;
+            QHBoxLayout* v1_manual_layout = new QHBoxLayout;
+            QHBoxLayout* v2_manual_layout = new QHBoxLayout;
+            std::string c_path = ros::package::getPath("tiffer_panel") + "/icons/classes";
+            std::string nav_icon_path = c_path + "compass.png";
+            QIcon nav_icon(QString::fromStdString(nav_icon_path));
+            manual_localize_button_1_ = new QPushButton(nav_icon, QObject::trUtf8("定点导航"));
+            manual_localize_button_2_ = new QPushButton(nav_icon, QObject::trUtf8("语音控制"));
+            manual_localize_button_3_ = new QPushButton(nav_icon, QObject::trUtf8("清扫状态"));
+            manual_localize_button_4_ = new QPushButton(nav_icon, QObject::trUtf8("电量管理"));
+            v1_manual_layout->addWidget(manual_localize_button_1_, 0, Qt::AlignVCenter);
+            v1_manual_layout->addWidget(manual_localize_button_2_, 0, Qt::AlignVCenter);
+            v2_manual_layout->addWidget(manual_localize_button_3_, 0, Qt::AlignVCenter);
+            v2_manual_layout->addWidget(manual_localize_button_4_, 0, Qt::AlignVCenter);
+            v1_manual_layout->addLayout(v1_manual_layout);
+            v2_manual_layout->addLayout(v2_manual_layout);
+            
+            main_layout->addLayout(v1_manual_layout);
+            main_layout->addLayout(v2_manual_layout);
+            //addLine(main_layout);
+
             //Localize button
-            QPushButton* localize_button = new QPushButton(QObject::trUtf8("自动定位"));
+            localize_button_ = new QPushButton(QObject::trUtf8("自动定位"));
+            localize_button_->hide();
             //localize_button->setFixedSize(200,100); //width height
             //main_layout->addWidget(localize_button, 0, Qt::AlignCenter);
-            main_layout->addWidget(localize_button);
-            addLine(main_layout);
+            main_layout->addWidget(localize_button_);
+            //addLine(main_layout);
             
-            QPushButton* add_location_button = new QPushButton(QObject::trUtf8("添加当前位置"));
-            button_layout->addWidget(add_location_button);
+            add_location_button_ = new QPushButton(QObject::trUtf8("添加当前位置"));
+            add_location_button_->hide();
+            button_layout->addWidget(add_location_button_);
 
-            QPushButton* remove_location_button = new QPushButton(QObject::trUtf8("移除选中位置"));
-            button_layout->addWidget(remove_location_button);
+            remove_location_button_ = new QPushButton(QObject::trUtf8("移除选中位置"));
+            remove_location_button_->hide();
+            button_layout->addWidget(remove_location_button_);
 
             main_layout->addLayout(button_layout);
-            addLine(main_layout);
+            //addLine(main_layout);
 
             QVBoxLayout* known_location_layout = new QVBoxLayout;
 
-            QLabel* known_location_label = new QLabel(QObject::trUtf8("已知位置列表"));
+            known_location_label_ = new QLabel(QObject::trUtf8("已知位置列表"));
+            known_location_label_->hide();
             //known_location_label->setAlignment(Qt::AlignCenter);
-            known_location_layout->addWidget(known_location_label);
+            known_location_layout->addWidget(known_location_label_);
 
             location_box_ = new QComboBox;
+            location_box_->hide();
             known_location_layout->addWidget(location_box_);
             main_layout->addLayout(known_location_layout);
-            addLine(main_layout);
+            //addLine(main_layout);
 
-            QPushButton* go_button = new QPushButton(QObject::trUtf8("导航至选中位置"));
-            main_layout->addWidget(go_button);
-            QPushButton* stop_button = new QPushButton(QObject::trUtf8("停止"));
-            main_layout->addWidget(stop_button);
-            addLine(main_layout);
+            go_button_ = new QPushButton(QObject::trUtf8("导航至选中位置"));
+            go_button_->hide();
+            main_layout->addWidget(go_button_);
+            stop_button_ = new QPushButton(QObject::trUtf8("停止"));
+            stop_button_->hide();
+            main_layout->addWidget(stop_button_);
+            //addLine(main_layout);
 
-            /*QHBoxLayout* cruise_button_layout = new QHBoxLayout;
-            QLabel* cruise_label = new QLabel(QObject::trUtf8("巡航路径"));
-            cruise_button_layout->addWidget(cruise_label);
+            QHBoxLayout* cruise_button_layout = new QHBoxLayout;
+            cruise_label_ = new QLabel(QObject::trUtf8("巡航路径"));
+            cruise_label_->hide();
+            cruise_button_layout->addWidget(cruise_label_);
             cruise_remove_button_ = new QPushButton(QObject::trUtf8("移除末端点"));
+            cruise_remove_button_->hide();
             cruise_button_layout->addWidget(cruise_remove_button_);
-            QPushButton* cruise_cleaar_button = new QPushButton(QObject::trUtf8("清除路经"));
-            cruise_button_layout->addWidget(cruise_cleaar_button);
+            cruise_cleaar_button_ = new QPushButton(QObject::trUtf8("清除路经"));
+            cruise_cleaar_button_->hide();
+            cruise_button_layout->addWidget(cruise_cleaar_button_);
             main_layout->addLayout(cruise_button_layout);
-            addLine(main_layout);*/
+            //addLine(main_layout);
 
-            QLabel* path_label = new QLabel();
+            path_label_ = new QLabel();
             //path_label->setText(QObject::trUtf8("全局规划路经长度:"));
-            path_label->setText(QObject::trUtf8("导航剩余时间"));
+            path_label_->setText(QObject::trUtf8("导航剩余时间"));
+            path_label_->hide();
             path_len_label_ = new QLabel();
-            main_layout->addWidget(path_label);
+            path_len_label_->hide();
+            main_layout->addWidget(path_label_);
             main_layout->addWidget(path_len_label_);
-            addLine(main_layout);
+            //addLine(main_layout);
 
-            asr_button_ = new QPushButton(QObject::trUtf8("语音"));
+            asr_button_ = new QPushButton(QObject::trUtf8("语音控制"));
+            asr_button_->hide();
             main_layout->addWidget(asr_button_);
             asr_result_label_ = new QLabel();
+            asr_result_label_->hide();
             main_layout->addWidget(asr_result_label_);
-            addLine(main_layout);
+            //addLine(main_layout);
 
             location_widget_ = new QListWidget;
-            //main_layout->addWidget(location_widget_);
+            location_widget_->hide();
+            main_layout->addWidget(location_widget_);
             //addLine(main_layout);
 
-            //QPushButton* cruise_button = new QPushButton(QObject::trUtf8("开始巡航"));
-            //main_layout->addWidget(cruise_button);
+            cruise_button_ = new QPushButton(QObject::trUtf8("开始巡航"));
+            cruise_button_->hide();
+            main_layout->addWidget(cruise_button_);
             //addLine(main_layout);
 
-            clean_progress = new QProgressBar();
-            clean_progress->setOrientation(Qt::Horizontal);
-            clean_progress->setMinimum(0);
-            clean_progress->setMaximum(0);
-            main_layout->addWidget(clean_progress);
-            addLine(main_layout);
+            clean_progress_ = new QProgressBar();
+            clean_progress_->setOrientation(Qt::Horizontal);
+            clean_progress_->setMinimum(0);
+            clean_progress_->setMaximum(100);
+            clean_progress_->setFormat(QString::fromLocal8Bit("当前清扫进度: %p%"));
+            clean_progress_->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+            clean_progress_->hide();
+            main_layout->addWidget(clean_progress_);
+            //addLine(main_layout);
 
             QHBoxLayout* status_layout = new QHBoxLayout;
-            QLabel* status_label = new QLabel(QObject::trUtf8("状态"));
-            status_label->setStyleSheet("QLabel { font-size: 20px; }");
-            status_layout->addWidget(status_label);
+            status_label_ = new QLabel(QObject::trUtf8("状态"));
+            status_label_->setStyleSheet("QLabel { font-size: 20px; }");
+            status_layout->addWidget(status_label_);
             status_line_ = new QLineEdit();
             status_line_->setAlignment(Qt::AlignCenter);
             status_line_->setEnabled(false);
@@ -115,36 +164,72 @@ namespace Tiffer
                 "QLineEdit { background: rgb(0, 255, 255); color: rgb(0, 0, 0); font-size: 20px;}");
             main_layout->addLayout(status_layout);
             main_layout->addStretch();
-            addLine(main_layout);
+            status_label_->hide();
+            status_line_->hide();
+            //addLine(main_layout);
+
+            //main_layout->addStretch();
+
+            QHBoxLayout* battery_layout = new QHBoxLayout;
+            battery_label_ = new QLabel(QObject::trUtf8("电池"));
+            battery_label_->hide();
+            battery_layout->addWidget(battery_label_);
+            battery_bar_ = new QProgressBar;
+            battery_bar_->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+            battery_bar_->hide();
+            battery_layout->addWidget(battery_bar_);
+            main_layout->addLayout(battery_layout);
+
+            QHBoxLayout* charge_layout = new QHBoxLayout;
+            auto_charge_label_ = new QLabel(QObject::trUtf8("自动充电"));
+            auto_charge_label_->hide();
+            charge_layout->addWidget(auto_charge_label_);
+            auto_charge_button_ = new QRadioButton;
+            auto_charge_button_->hide();
+            charge_layout->addWidget(auto_charge_button_);
+            manual_charge_button_ = new QPushButton(QObject::trUtf8("立刻充电"));
+            manual_charge_button_->hide();
+            charge_layout->addWidget(manual_charge_button_);
+            manual_charge_button_->setEnabled(false);
+            auto_charge_button_->setChecked(true);
+            main_layout->addLayout(charge_layout);
+
+            main_manu_button_ = new QPushButton(QObject::trUtf8("返回主菜单"));
+            main_layout->addWidget(main_manu_button_);
 
             QHBoxLayout* message_layout = new QHBoxLayout;
             message_display = new QLabel(QObject::trUtf8("智澜科技"));
             message_display->setTextFormat(Qt::RichText);
             message_display->setAlignment(Qt::AlignCenter); 
-            
-            //main_layout->addWidget(message_display);
             message_layout->addWidget(message_display);
             main_layout->addLayout(message_layout);
 
             setLayout( main_layout );
 
             record_thread_ = new Record_thread();
+            clean_thread_ = new Clean_thread();
 
             //input_topic_editor->resize(150, input_topic_editor->height());
 
             // Next we make signal/slot connections.
             //connect( input_topic_editor, SIGNAL( editingFinished() ), this, SLOT( setTopic() ));
-            connect(localize_button, SIGNAL(clicked()), this, SLOT(localizeCallback()));
-            connect(add_location_button, SIGNAL(clicked()), this, SLOT(addLocationCallback()));
-            connect(remove_location_button, SIGNAL(clicked()), this, SLOT(removeLocationCallback()));
-            connect(go_button, SIGNAL(clicked()), this, SLOT(goToLocationCallback()));
-            connect(stop_button, SIGNAL(clicked()), this, SLOT(stopCallback()));
+            connect(localize_button_, SIGNAL(clicked()), this, SLOT(localizeCallback()));
+            connect(add_location_button_, SIGNAL(clicked()), this, SLOT(addLocationCallback()));
+            connect(remove_location_button_, SIGNAL(clicked()), this, SLOT(removeLocationCallback()));
+            connect(go_button_, SIGNAL(clicked()), this, SLOT(goToLocationCallback()));
+            connect(stop_button_, SIGNAL(clicked()), this, SLOT(stopCallback()));
             //connect(cruise_remove_button_, SIGNAL(clicked()), this, SLOT(removeCruiseCallback()));
             //connect(cruise_cleaar_button, SIGNAL(clicked()), this, SLOT(clearCruise()));
-            //connect(cruise_button, SIGNAL(clicked()), this, SLOT(startCruising()));
+            connect(cruise_button_, SIGNAL(clicked()), this, SLOT(startCruising()));
             //connect(asr_button_, SIGNAL(pressed()), this, SLOT(asrPressCallback()));
             connect(asr_button_, SIGNAL(released()), this, SLOT(asrReleaseCallback()));
             connect(record_thread_, SIGNAL(finished()), this, SLOT(asrThreadCallback()));
+
+            connect(manual_localize_button_1_, SIGNAL(clicked()), this, SLOT(b1Callback()));
+            connect(manual_localize_button_2_, SIGNAL(clicked()), this, SLOT(b2Callback()));
+            connect(manual_localize_button_3_, SIGNAL(clicked()), this, SLOT(b3Callback()));
+            connect(manual_localize_button_4_, SIGNAL(clicked()), this, SLOT(b4Callback()));
+            connect(main_manu_button_, SIGNAL(clicked()), this, SLOT(manualCallback()));
 
             //input_topic_editor->setText( input_topic );
             //setTopic();
@@ -159,15 +244,15 @@ namespace Tiffer
             location_mark_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("/tiffer_panel/Navigation/KnownLocations", 2, true);
             publishLocationsToRviz();
             
-            cruise_path_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("/tiffer_panel/Navigation/CruisePath",2,true);
+            cruise_number_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("/tiffer_panel/Navigation/CruisePathNumber",2, true);
+            cruise_path_pub_ = nh_.advertise<visualization_msgs::Marker>("/tiffer_panel/Navigation/CruisePath",2,true);
             nav_stop_pub_ = nh_.advertise<actionlib_msgs::GoalID>("/move_base/cancel", 1, true);
             odom_sub_ = nh_.subscribe("/odom", 10, &TifferPanel::odomCallback, this);
-            nav_status_sub_ = nh_.subscribe("/move_base/result", 10, &TifferPanel::statusCallback, this);
+            nav_status_sub_ = nh_.subscribe("/move_base/result", 10, &TifferPanel::moveBaseResultCallback, this);
             path_len_sub_ = nh_.subscribe("/move_base/NavfnROS/plan", 10, &TifferPanel::globalPathLenCallback, this);
             nav_time_sub_ = nh_.subscribe("/move_base/current_goal", 10, &TifferPanel::remainNavTimeCallback, this);
-            mouse_cruise_location_sub_ = nh_.subscribe("/tiffer_panel/MouseCruiseLocation", 10,
-                                                        &TifferPanel::mouseCruiseLocationCallback, this);
-
+            mouse_cruise_location_sub_ = nh_.subscribe("/tiffer_panel/MouseCruiseLocation", 10, &TifferPanel::mouseCruiseLocationCallback, this);
+            
             cruise_path_mark_.type = cruise_path_mark_.LINE_STRIP;
             cruise_path_mark_.action = cruise_path_mark_.ADD;
             cruise_path_mark_.header.frame_id = "map";
@@ -178,6 +263,10 @@ namespace Tiffer
             cruise_number_mark_.markers.clear();
             cruise_path_.clear();
 
+            application_start_pub_ = nh_.advertise<std_msgs::Bool>("/start_application", 2, false);
+            application_finish_sub_ = nh_.subscribe("/finish_application", 10, &TifferPanel::finishApplicationCallback,this);
+            application_finish_pub_ = nh_.advertise<std_msgs::Bool>("/finish_application", 2, false);
+
             stopCallback();     
         }
 
@@ -186,12 +275,198 @@ namespace Tiffer
             record_thread_->exit(0);
             record_thread_->wait();
             record_thread_->deleteLater();
+            clean_thread_->exit(0);
+            clean_thread_->wait();
+            clean_thread_->deleteLater();
         }
 
         template<class T>
         int arr_len(T& arr)
         {
             return sizeof(arr) / sizeof(arr[0]);
+        }
+
+        void TifferPanel::b1Callback()
+        {
+            manual_localize_button_1_->hide();
+            manual_localize_button_2_->hide();
+            manual_localize_button_3_->hide();
+            manual_localize_button_4_->hide();
+            hand_display_->hide();
+
+            localize_button_->show();
+            add_location_button_->show();
+            remove_location_button_->show();
+            known_location_label_->show();
+            location_box_->show();
+            go_button_->show();
+            stop_button_->show();
+            path_label_->show();
+            path_len_label_->show();
+
+            asr_button_->hide();
+            asr_result_label_->hide();
+
+            cruise_label_->hide();
+            cruise_remove_button_->hide();
+            cruise_cleaar_button_->hide();
+            location_widget_->hide();
+            cruise_button_->hide();
+            clean_progress_->hide();
+            status_label_->show();
+            status_line_->show();
+
+            battery_label_->hide();
+            battery_bar_->hide();
+            auto_charge_label_->hide();
+            auto_charge_button_->hide();
+            manual_charge_button_->hide();
+        }
+
+        void TifferPanel::b2Callback()
+        {
+            manual_localize_button_1_->hide();
+            manual_localize_button_2_->hide();
+            manual_localize_button_3_->hide();
+            manual_localize_button_4_->hide();
+            hand_display_->hide();
+
+            localize_button_->hide();
+            add_location_button_->hide();
+            remove_location_button_->hide();
+            known_location_label_->hide();
+            location_box_->hide();
+            go_button_->hide();
+            stop_button_->hide();
+            path_label_->hide();
+            path_len_label_->hide();
+
+            asr_button_->show();
+            asr_result_label_->show();
+
+            cruise_label_->hide();
+            cruise_remove_button_->hide();
+            cruise_cleaar_button_->hide();
+            location_widget_->hide();
+            cruise_button_->hide();
+            clean_progress_->hide();
+            status_label_->hide();
+            status_line_->hide();
+
+            battery_label_->hide();
+            battery_bar_->hide();
+            auto_charge_label_->hide();
+            auto_charge_button_->hide();
+            manual_charge_button_->hide();
+        }
+        void TifferPanel::b3Callback()
+        {
+            manual_localize_button_1_->hide();
+            manual_localize_button_2_->hide();
+            manual_localize_button_3_->hide();
+            manual_localize_button_4_->hide();
+            hand_display_->hide();
+
+            localize_button_->hide();
+            add_location_button_->hide();
+            remove_location_button_->hide();
+            known_location_label_->hide();
+            location_box_->hide();
+            go_button_->hide();
+            stop_button_->hide();
+            path_label_->hide();
+            path_len_label_->hide();
+
+            asr_button_->hide();
+            asr_result_label_->hide();
+
+            cruise_label_->show();
+            cruise_remove_button_->show();
+            cruise_cleaar_button_->show();
+            location_widget_->show();
+            cruise_button_->show();
+            clean_progress_->show();
+            status_label_->show();
+            status_line_->show();
+
+            battery_label_->hide();
+            battery_bar_->hide();
+            auto_charge_label_->hide();
+            auto_charge_button_->hide();
+            manual_charge_button_->hide();
+        }
+        void TifferPanel::b4Callback()
+        {
+            manual_localize_button_1_->hide();
+            manual_localize_button_2_->hide();
+            manual_localize_button_3_->hide();
+            manual_localize_button_4_->hide();
+            hand_display_->hide();
+
+            localize_button_->hide();
+            add_location_button_->hide();
+            remove_location_button_->hide();
+            known_location_label_->hide();
+            location_box_->hide();
+            go_button_->hide();
+            stop_button_->hide();
+            path_label_->hide();
+            path_len_label_->hide();
+
+            asr_button_->hide();
+            asr_result_label_->hide();
+
+            cruise_label_->hide();
+            cruise_remove_button_->hide();
+            cruise_cleaar_button_->hide();
+            location_widget_->hide();
+            cruise_button_->hide();
+            clean_progress_->hide();
+            status_label_->hide();
+            status_line_->hide();
+
+            battery_label_->show();
+            battery_bar_->show();
+            auto_charge_label_->show();
+            auto_charge_button_->show();
+            manual_charge_button_->show();
+        }
+
+        void TifferPanel::manualCallback()
+        {
+            manual_localize_button_1_->show();
+            manual_localize_button_2_->show();
+            manual_localize_button_3_->show();
+            manual_localize_button_4_->show();
+            hand_display_->show();
+
+            localize_button_->hide();
+            add_location_button_->hide();
+            remove_location_button_->hide();
+            known_location_label_->hide();
+            location_box_->hide();
+            go_button_->hide();
+            stop_button_->hide();
+            path_label_->hide();
+            path_len_label_->hide();
+
+            asr_button_->hide();
+            asr_result_label_->hide();
+
+            cruise_label_->hide();
+            cruise_remove_button_->hide();
+            cruise_cleaar_button_->hide();
+            location_widget_->hide();
+            cruise_button_->hide();
+            clean_progress_->hide();
+            status_label_->hide();
+            status_line_->hide();
+
+            battery_label_->hide();
+            battery_bar_->hide();
+            auto_charge_label_->hide();
+            auto_charge_button_->hide();
+            manual_charge_button_->hide();
         }
 
         void TifferPanel::setTopic()
@@ -246,8 +521,14 @@ namespace Tiffer
             if(confirmation.clickedButton() == yes){
                 QMessageBox accept;
                 setRobotStatus(NavStatus::INPROGRESS);
-                clean_progress->setMaximum(100);
-                clean_progress->setValue(50);
+                clean_progress_->setMaximum(100);
+                clean_progress_->setValue(0);
+
+                clean_thread_->start();
+
+                mbgoal_.target_pose.pose.position.x = 2.0;
+                move_base_client_.sendGoal(mbgoal_);
+
                 accept.setText(trUtf8("已确认desu"));
                 accept.exec();
             }
@@ -299,27 +580,6 @@ namespace Tiffer
             pose.orientation.y = tt.rotation.y;
             pose.orientation.z = tt.rotation.z;
             pose.orientation.w = tt.rotation.w;
-
-            /*tf2_ros::Buffer tfBuffer;
-            tf2_ros::TransformListener tfListener(tfBuffer);
-            geometry_msgs::TransformStamped ts;
-
-            try
-            {
-                ts = tfBuffer.lookupTransform("map", "odom", ros::Time(0));
-            }
-            catch (tf2::TransformException &ex){
-                ROS_WARN("%s", ex.what());
-                ros::Duration(1.0).sleep();
-            }
-            geometry_msgs::Transform tt = ts.transform;
-            pose.position.x = tt.translation.x;
-            pose.position.y = tt.translation.y;
-            pose.position.z = tt.translation.z;
-            pose.orientation.x = tt.rotation.x;
-            pose.orientation.y = tt.rotation.y;
-            pose.orientation.z = tt.rotation.z;
-            pose.orientation.w = tt.rotation.w;*/
         }
 
         void TifferPanel::odomCallback(const nav_msgs::OdometryConstPtr &msg)
@@ -398,19 +658,19 @@ namespace Tiffer
                 new_mark.pose.position.z = 0.15;
                 
                 //it.first -> std::string
-                std::cout << "it -> first: " << it.first << std::endl;
-                QString tr1(tr(it.first.data()));
+                // std::cout << "it -> first: " << it.first << std::endl;
+                // QString tr1(tr(it.first.data()));
 
-                if(typeid(it.first) == typeid(std::string)) 
-                    std::cout << "it.first is std::string." << std::endl;
+                // if(typeid(it.first) == typeid(std::string)) 
+                //     std::cout << "it.first is std::string." << std::endl;
 
-                std::cout << (typeid(tr1) == typeid(QString)) << std::endl;
+                // std::cout << (typeid(tr1) == typeid(QString)) << std::endl;
 
-                QString tr2 = tr1.toUtf8();
-                qDebug() << "tr2 is :" << tr2;
-                new_mark.text = tr2.toStdString();
+                // QString tr2 = tr1.toUtf8();
+                // qDebug() << "tr2 is :" << tr2;
+                // new_mark.text = tr2.toStdString();
 
-                //new_mark.text = it.first;  //text -> string
+                new_mark.text = it.first;  //text -> string
 
                 new_mark.scale.z = 0.5;
                 new_mark.color.r = new_mark.color.a = 1;
@@ -591,29 +851,72 @@ namespace Tiffer
 
         void TifferPanel::moveBaseResultCallback(const move_base_msgs::MoveBaseActionResultConstPtr &msg)
         {
-            ROS_INFO_STREAM("Result" << msg->status);
-            if(!in_cruise_mode_)
+            ROS_INFO_STREAM("Result "<<msg->status);
+            if (msg->status.status == msg->status.SUCCEEDED)
+            {
+                ROS_INFO_STREAM("current goal name:"<<msg->status.text);
+                ROS_INFO_STREAM("current status :"<<msg->status);
+            }
+            if (!in_cruise_mode_)
+            {
                 setRobotStatus(NavStatus::IDLE);
-            else if(msg->status.status == msg->status.SUCCEEDED)
+            }
+            else if (msg->status.status == msg->status.SUCCEEDED)
             {
                 std_msgs::Bool start_msg;
-                start_msg.data = true;
+		        start_msg.data = true;
                 application_start_pub_.publish(start_msg);
                 setRobotStatus(NavStatus::WAIT_APPLICATION);
 
-                if(current_cruise_index_ > 0)
+                if (current_cruise_index_ > 0)
                 {
                     location_widget_->item(current_cruise_index_ - 1)->setText(
-                        QString::fromStdString(cruise_path_[current_cruise_index_ - 1].name) 
-                            + QString::fromUtf8("   已抵达"));
+                            QString::fromStdString(cruise_path_[current_cruise_index_ - 1].name)
+                                    + QString::fromUtf8("    已抵达"));
                     location_widget_->item(current_cruise_index_ - 1)->setBackgroundColor(
-                        QColor::fromRgb(200, 200, 200, 255));
+                            QColor::fromRgb(200, 200, 200, 255));
+                    
+                    std_msgs::Bool finish_msg;
+		            finish_msg.data = true;
+                    application_finish_pub_.publish(finish_msg);
                 }
             }
-            else {
+            else
+            {
                 setRobotStatus(NavStatus::FAILED);
-                ROS_ERROR_STREAM("Failed to cruise to location" << cruise_path_[current_cruise_index_ - 1].name);
+                ROS_ERROR_STREAM("Failed to cruise to location "<<cruise_path_[current_cruise_index_-1].name);
             }
+        }
+
+        void TifferPanel::finishApplicationCallback(const std_msgs::BoolConstPtr &msg)
+        {
+            if (current_cruise_index_ < cruise_path_.size())
+            {
+                //system("rosservice call /move_base/clear_costmaps");
+                ROS_INFO_STREAM("costmaps clear ");
+                goToNextCruiseLocation();
+            }
+            else
+            {
+                location_widget_->item(current_cruise_index_ - 1)->setText(
+                        QString::fromStdString(cruise_path_[current_cruise_index_ - 1].name)
+                                + QString::fromUtf8("    已抵达"));
+                location_widget_->item(current_cruise_index_ - 1)->setBackgroundColor(
+                        QColor::fromRgb(200, 200, 200, 255));
+                ROS_INFO_STREAM("Navigation: Cruising task completed.");
+                setRobotStatus(NavStatus::SUCCESS);
+                //clearCruise();
+                in_cruise_mode_ = false;
+            }
+        }
+
+        void TifferPanel::goToNextCruiseLocation()
+        {
+            location_widget_->item(current_cruise_index_)->setText(
+                    QString::fromStdString(cruise_path_[current_cruise_index_].name) + QString::fromUtf8("    巡航中"));
+            location_widget_->item(current_cruise_index_)->setBackgroundColor(QColor::fromRgb(0, 255, 0, 255));
+            moveToLocation(cruise_path_[current_cruise_index_]);
+            current_cruise_index_++;
         }
 
         void TifferPanel::removeCruiseCallback()
@@ -793,7 +1096,7 @@ namespace Tiffer
             switch (status)
             {
                 case NavStatus::IDLE:
-                    status_line_->setText(QObject::trUtf8("没事干"));
+                    status_line_->setText(QObject::trUtf8("闲置状态"));
                     status_line_->setStyleSheet(
                         "QLineEdit { background: rgb(0, 255, 255);"\
                         " color: rgb(0, 0, 0); font-size: 20px;}"
@@ -801,7 +1104,7 @@ namespace Tiffer
                     break;
                     
                 case NavStatus::INPROGRESS:
-                    status_line_->setText(QObject::trUtf8("走着呢"));
+                    status_line_->setText(QObject::trUtf8("导航中..."));
                     status_line_->setStyleSheet(
                         "QLineEdit { background: rgb(255, 0, 255);"\
                         " color: rgb(0, 0, 0); font-size: 20px;}"
@@ -809,7 +1112,7 @@ namespace Tiffer
                     break;
 
                 case NavStatus::SUCCESS:
-                    status_line_->setText(QObject::trUtf8("完成了"));
+                    status_line_->setText(QObject::trUtf8("导航完成"));
                     status_line_->setStyleSheet(
                         "QLineEdit { background: rgb(255, 215, 0);"\
                         " color: rgb(0, 0, 0); font-size: 20px;}"
