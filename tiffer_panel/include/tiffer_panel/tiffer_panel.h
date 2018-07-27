@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <std_msgs/String.h>
+#include <std_msgs/Float64.h>
 #include <rviz/panel.h>
 #include <tf/transform_listener.h>
 #include <tf/transform_datatypes.h>
@@ -140,6 +141,7 @@ namespace Tiffer
                 void globalPathLenCallback(const nav_msgs::Path &msg);
                 void remainNavTimeCallback(const geometry_msgs::PoseStampedConstPtr &msg);
                 void finishApplicationCallback(const std_msgs::BoolConstPtr &msg);
+                void cleanProcessCallback(const std_msgs::Float64 &msg);
                 
 
                 ros::NodeHandle nh_;
@@ -150,6 +152,7 @@ namespace Tiffer
                 ros::Publisher application_start_pub_;
                 ros::Publisher application_finish_pub_;
                 ros::Subscriber application_finish_sub_;
+                ros::Subscriber clean_progress_sub_;
                 ros::Subscriber odom_sub_;
                 ros::Subscriber nav_status_sub_;
                 ros::Subscriber application_finish_sub;

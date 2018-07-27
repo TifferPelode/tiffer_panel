@@ -264,8 +264,10 @@ namespace Tiffer
             cruise_path_.clear();
 
             application_start_pub_ = nh_.advertise<std_msgs::Bool>("/start_application", 2, false);
-            application_finish_sub_ = nh_.subscribe("/finish_application", 10, &TifferPanel::finishApplicationCallback,this);
+            application_finish_sub_ = nh_.subscribe("/finish_application", 10, &TifferPanel::finishApplicationCallback, this);
             application_finish_pub_ = nh_.advertise<std_msgs::Bool>("/finish_application", 2, false);
+
+            clean_progress_sub_ = nh_.subscribe("/clean_process", 1, &TifferPanel::cleanProcessCallback, this);
 
             stopCallback();     
         }
@@ -312,7 +314,7 @@ namespace Tiffer
             cruise_cleaar_button_->hide();
             location_widget_->hide();
             cruise_button_->hide();
-            clean_progress_->hide();
+            clean_progress_->show();
             status_label_->show();
             status_line_->show();
 
@@ -525,9 +527,6 @@ namespace Tiffer
                 clean_progress_->setValue(0);
 
                 clean_thread_->start();
-
-                mbgoal_.target_pose.pose.position.x = 2.0;
-                move_base_client_.sendGoal(mbgoal_);
 
                 accept.setText(trUtf8("已确认desu"));
                 accept.exec();
@@ -1080,6 +1079,12 @@ namespace Tiffer
 
             asr_button_->setEnabled(true);
 
+        }
+
+        void TifferPanel::cleanProcessCallback(const std_msgs::Float64 &msg)
+        {
+            //std_msgs::Float64 tr = msg;
+            clean_progress_->setValue(msg.data);
         }
 
         void TifferPanel::addLine(QVBoxLayout* layout)
