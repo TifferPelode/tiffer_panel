@@ -2,8 +2,8 @@
 a panel for rviz
 
 ## Use it though：
-```shell
-sh tiffer_panel/shell/rviz.sh
+```
+roslaunch tiffer_panel gui.launch
 ```
 
 ## Tip:
